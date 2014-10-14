@@ -565,7 +565,7 @@ void QSpotifyPlaylist::deleteFolderContent()
 
 bool QSpotifyPlaylist::isCurrentPlaylist() const
 {
-    return QSpotifySession::instance()->m_playQueue->m_sourceTrackList == m_trackList;
+    return QSpotifySession::instance()->m_playQueue->isCurrentTrackList(m_trackList);
 }
 
 byte *QSpotifyPlaylist::getImageIdPtr(const QString &key)
@@ -595,12 +595,8 @@ void QSpotifyPlaylist::setAvailableOffline(bool offline)
 
 void QSpotifyPlaylist::play()
 {
-    if (!m_trackList || m_trackList->isEmpty())
-        return;
-
-    int i = (m_type == Starred || m_type == Inbox) ? m_trackList->previousAvailable(m_trackList->count())
-                                                   : m_trackList->nextAvailable(-1);
-    QSpotifySession::instance()->m_playQueue->playTrack(m_trackList, i);
+    if (m_trackList && !m_trackList->isEmpty())
+        m_trackList->play();
 }
 
 void QSpotifyPlaylist::enqueue()
