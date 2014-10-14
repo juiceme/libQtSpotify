@@ -42,71 +42,67 @@
 #ifndef QSPOTIFYPLAYQUEUE_H
 #define QSPOTIFYPLAYQUEUE_H
 
-#include <QtCore/QObject>
 #include <QtCore/QQueue>
 
-#include "shared_ptr.h"
+#include "qspotifytracklist.h"
 
-class QSpotifyTrackList;
-class QSpotifySearch;
-
-class QSpotifyPlayQueue : public QObject
+class QSpotifyPlayQueue : public QSpotifyTrackList
 {
     Q_OBJECT
-//    Q_PROPERTY(QList<QObject *> tracks READ tracks NOTIFY tracksChanged)
+    Q_PROPERTY(int currentPlayIndex READ currentPlayIndex NOTIFY currentPlayIndexChanged)
 public:
     QSpotifyPlayQueue(QObject *parent = nullptr);
-    ~QSpotifyPlayQueue();
 
     void playTrack(QSpotifyTrackList *list, int index);
     // if we want to play a track which is playing but we want to set
     // a different tracklist.
-    void playFromDifferentTrackList(QSpotifyTrackList *list);
+    void adaptTrackList(QSpotifyTrackList *list);
     void enqueueTrack(QSpotifyTrack *track);
-    void enqueueTracks(QSpotifyTrackList *tracks, bool reverse = false);
-    Q_INVOKABLE void selectTrack(int index);
+    void enqueueTracks(QSpotifyTrackList *list);
 
-    Q_INVOKABLE bool isExplicitTrack(int index);
+    Q_INVOKABLE bool playTrackAt(int i);
+
+    virtual void clear() override;
 
     void playNext(bool repeatOne);
     void playPrevious();
 
-    void clear();
+    void clearQueue();
 
-    void setShuffle(bool s);
+    void setShuffle(bool s, bool force = false);
     void setRepeat(bool r);
 
-    Q_INVOKABLE int currentIndex() const { return m_currentTrackIndex; }
-
-    Q_INVOKABLE QSpotifyTrackList *tracks() const;
-
     bool isCurrentTrackList(QSpotifyTrackList *tl);
-    void tracksUpdated();
+
+    int currentPlayIndex() const { return m_currentIndex; }
+
+    Q_INVOKABLE bool isExplicitTrack(int index);
 
 Q_SIGNALS:
-    void tracksChanged();
+    void currentPlayIndexChanged();
 
 private Q_SLOTS:
     void onTrackReady();
     void onOfflineModeChanged();
 
 private:
-    void clearTrackList();
+    void playCurrentTrack();
 
-    QSpotifyTrackList *m_implicitTracks;
+    void shuffleInitialTracks();
+
+    QVector<int> m_originalIndexes;
     QQueue<QSpotifyTrack *> m_explicitTracks;
-    QSpotifyTrack *m_currentExplicitTrack;
+    QList<QSpotifyTrack *> m_initialTracks;
 
-    // The tracklist from which the current tracks are from
-    QSpotifyTrackList* m_sourceTrackList;
+    // The tracklist from which the current tracks are from, this should NEVER be accessed!
+    QSpotifyTrackList* m_sourceTrackList{};
 
-    mutable int m_currentTrackIndex;
+    bool m_repeat{};
 
-    bool m_shuffle;
-    bool m_repeat;
+    QSpotifyTrack *m_currentTrack{};
+    int m_currentIndex{};
 
     friend class QSpotifyPlaylist;
-    friend class QSpotifySearch;
 };
 
 #endif // QSPOTIFYPLAYQUEUE_H

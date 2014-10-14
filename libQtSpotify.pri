@@ -52,7 +52,6 @@ HEADERS += ../libQtSpotify/qspotifysession.h \
     ../libQtSpotify/qspotifyevents.h \
     ../libQtSpotify/listmodels/listmodelbase.h \
     ../libQtSpotify/listmodels/tracklistfiltermodel.h \
-    ../libQtSpotify/shared_ptr.h \
     ../libQtSpotify/qspotifyaudiothreadworker.h \
     ../libQtSpotify/listmodels/qspotifyartistlist.h \
     ../libQtSpotify/listmodels/qspotifyalbumlist.h \

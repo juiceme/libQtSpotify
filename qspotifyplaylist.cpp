@@ -331,6 +331,7 @@ bool QSpotifyPlaylist::updateData()
 QSpotifyTrack *QSpotifyPlaylist::addTrack(sp_track *track, int pos)
 {
     auto qtrack = QSpotifyCacheManager::instance().getTrack(track, this);
+    if (!qtrack) return nullptr;
 
     if (pos == -1)
         m_trackList->appendRow(qtrack);
@@ -383,7 +384,7 @@ bool QSpotifyPlaylist::event(QEvent *e)
         QSpotifyTracksAddedEvent *ev = static_cast<QSpotifyTracksAddedEvent *>(e);
         QVector<sp_track*> tracks = ev->tracks();
         int pos = ev->position();
-        bool currentList = QSpotifySession::instance()->playQueue()->isCurrentTrackList(m_trackList);
+//      TODO  bool currentList = QSpotifySession::instance()->playQueue()->isCurrentTrackList(m_trackList);
         int amount = sp_playlist_num_tracks(m_sp_playlist);
         for (int i = 0; i < tracks.count(); ++i) {
             auto strack = tracks.at(i);
@@ -392,19 +393,17 @@ bool QSpotifyPlaylist::event(QEvent *e)
                 continue;
             }
             if (pos < amount && strack == sp_playlist_track(m_sp_playlist, pos)) {
-                auto t = addTrack(strack, pos++);
-                if(currentList)
-                    QSpotifySession::instance()->playQueue()->m_implicitTracks->appendRow(t);
-            } else {
-                qDebug() << "Unmatched track found";
+                if (auto t = addTrack(strack, pos)) {
+//          TODO          if(currentList)
+//                        QSpotifySession::instance()->playQueue()->appendRow(t);
+                    ++pos;
+                }
             }
         }
-        if(currentList)
-            QSpotifySession::instance()->playQueue()->m_implicitTracks->setShuffle(QSpotifySession::instance()->playQueue()->m_implicitTracks->isShuffle());
+
         postUpdateEvent();
         if (m_type == Starred || m_type == Inbox)
             emit tracksAdded(tracks);
-        m_trackList->setShuffle(m_trackList->isShuffle());
         qDebug() << "Track add end";
         e->accept();
         return true;
@@ -415,7 +414,7 @@ bool QSpotifyPlaylist::event(QEvent *e)
         std::sort(tracks.begin(), tracks.end(), std::greater<int>());
         QVector<sp_track *> tracksSignal;
 
-        bool isCurrentList = QSpotifySession::instance()->playQueue()->isCurrentTrackList(m_trackList);
+//   TODO     bool isCurrentList = QSpotifySession::instance()->playQueue()->isCurrentTrackList(m_trackList);
 
         for (int i = 0; i < tracks.count(); ++i) {
             int pos = tracks.at(i);
@@ -428,19 +427,16 @@ bool QSpotifyPlaylist::event(QEvent *e)
                 tracksSignal.append(tr->m_sp_track);
                 m_tracksSet.remove(tr->m_sp_track);
 
-                if(isCurrentList) {
-                    auto playQueueList = QSpotifySession::instance()->playQueue()->m_implicitTracks;
-                    playQueueList->removeRow(playQueueList->indexOf(tr));
-                }
+//                if(isCurrentList) {
+//     TODO               auto playQueueList = QSpotifySession::instance()->playQueue();
+//                    playQueueList->removeRow(playQueueList->indexOf(tr));
+//                }
             }
         }
         postUpdateEvent();
         if (m_type == Starred)
             emit tracksRemoved(tracksSignal);
         e->accept();
-        m_trackList->setShuffle(m_trackList->isShuffle());
-        auto playQueueList = QSpotifySession::instance()->playQueue()->m_implicitTracks;
-        playQueueList->setShuffle(playQueueList->isShuffle());
         return true;
     } else if (e->type() == QEvent::User + 5) {
         // TracksMoved event
@@ -459,8 +455,8 @@ bool QSpotifyPlaylist::event(QEvent *e)
             m_trackList->insertRow(newpos++, tracks.at(i));
         m_trackList->removeAll(nullptr);
         postUpdateEvent();
-        if (QSpotifySession::instance()->playQueue()->isCurrentTrackList(m_trackList))
-            QSpotifySession::instance()->playQueue()->tracksUpdated();
+//        if (QSpotifySession::instance()->playQueue()->isCurrentTrackList(m_trackList))
+// TODO           QSpotifySession::instance()->playQueue()->tracksUpdated();
         e->accept();
         return true;
     } else if (e->type() == QEvent::User + 6) {

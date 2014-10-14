@@ -50,6 +50,7 @@
 #include "qspotifyplaylistcontainer.h"
 #include "qspotifyplaylist.h"
 #include "qspotifysession.h"
+#include "qspotifytrack.h"
 
 QSpotifyUser::QSpotifyUser(sp_user *user)
     : QSpotifyObject(true)

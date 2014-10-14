@@ -99,7 +99,7 @@ void ListModelBase<ItemType>::itemDataChanged()
     auto sndr = dynamic_cast<ItemType *>(sender());
     if(sndr) {
         int idx = m_dataList.indexOf(sndr);
-        if(idx > -1 && idx < count()) {
+        if (idx > -1 && idx < count()) {
             auto modelIdx = index(idx);
             emit dataChanged(modelIdx, modelIdx);
         }

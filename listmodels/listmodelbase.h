@@ -29,16 +29,26 @@ public:
     ItemType *takeRow(int row);
     ItemType *find(const QString &id) const;
     QModelIndex indexFromItem(const ItemType *item) const;
-    void clear();
+    virtual void clear();
 
     bool isEmpty() const { return m_dataList.isEmpty(); }
     ItemType *at(int index) const { return m_dataList.at(index); }
     int count() const { return m_dataList.count(); }
 
+    using iterator = typename QList<ItemType *>::Iterator;
+    using const_iterator = typename QList<ItemType *>::ConstIterator;
+
+    iterator begin() { return m_dataList.begin(); }
+    const_iterator begin() const { return m_dataList.begin(); }
+    const_iterator cbegin() const { return m_dataList.cbegin(); }
+    iterator end() { return m_dataList.end(); }
+    const_iterator end() const { return m_dataList.end(); }
+    const_iterator cend() const { return m_dataList.cend(); }
+
 protected:
     QList<ItemType *> m_dataList;
 
-private slots:
+protected slots:
     void itemDataChanged();
 };
 

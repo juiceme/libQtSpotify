@@ -43,11 +43,12 @@
 #define QSPOTIFYUSER_H
 
 #include "qspotifyobject.h"
-#include "shared_ptr.h"
 
 class QSpotifyAlbumBrowse;
 class QSpotifyPlaylist;
 class QSpotifyPlaylistContainer;
+class QSpotifyTrack;
+
 struct sp_user;
 
 class QSpotifyUser : public QSpotifyObject

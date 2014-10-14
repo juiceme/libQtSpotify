@@ -45,13 +45,12 @@
 #include <QtCore/QList>
 #include <QtCore/QObject>
 
-#include "shared_ptr.h"
+#include "qspotifytrack.h"
 #include "listmodels/listmodelbase.h"
 
 class QSpotifyTrackList : public ListModelBase<QSpotifyTrack>
 {
     Q_OBJECT
-    Q_PROPERTY(int currentPlayIndex READ currentPlayIndex NOTIFY currentPlayIndexChanged)
 public:
     enum Roles{
         NameRole = Qt::UserRole+1,
@@ -84,18 +83,12 @@ public:
     void play();
     Q_INVOKABLE void playTrack(int index);
     bool playTrackAtIndex(int i);
-    bool next();
-    bool previous();
     void playLast();
 
     int totalDuration() const;
 
     bool isShuffle() const { return m_shuffle; }
-    void setShuffle(bool s);
-
-    int currentPlayIndex() {
-        return m_currentIndex;
-    }
+    virtual void setShuffle(bool s) { m_shuffle = s; }
 
     int indexOf(QSpotifyTrack *ptr) const
     { return m_dataList.indexOf(ptr); }
@@ -108,27 +101,15 @@ public:
 
     int removeAll(QSpotifyTrack *ptr);
 
-
-private Q_SLOTS:
-    void onTrackReady();
-
-signals:
-    void currentPlayIndexChanged();
-
-private:
-    void playCurrentTrack();
-
+protected:
     int nextAvailable(int i);
     int previousAvailable(int i);
 
+    bool m_shuffle{};
+
+private:
+    void playCurrentTrack();
     QHash<int, QByteArray> m_roles;
-
-    int m_currentIndex;
-    QSpotifyTrack *m_currentTrack;
-
-    bool m_shuffle;
-    QList<int> m_shuffleList;
-    int m_shuffleIndex;
 
     friend class QSpotifyTrack;
     friend class QSpotifyPlaylist;

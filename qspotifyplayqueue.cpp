@@ -41,295 +41,309 @@
 
 #include "qspotifyplayqueue.h"
 
+#include <QtCore/QDebug>
+
 #include "qspotifysession.h"
 #include "qspotifytracklist.h"
 
 QSpotifyPlayQueue::QSpotifyPlayQueue(QObject *parent)
-    : QObject(parent)
-    , m_currentExplicitTrack(nullptr)
-    , m_sourceTrackList(nullptr)
-    , m_currentTrackIndex(0)
-    , m_shuffle(false)
-    , m_repeat(false)
-{
-    m_implicitTracks = new QSpotifyTrackList(this);
-}
-
-QSpotifyPlayQueue::~QSpotifyPlayQueue()
-{
-    clear();
-}
+    : QSpotifyTrackList(parent)
+{}
 
 void QSpotifyPlayQueue::playTrack(QSpotifyTrackList *list, int index)
 {
-    if (m_currentExplicitTrack) {
-        m_currentExplicitTrack->release();
-        m_currentExplicitTrack = nullptr;
-    }
+    adaptTrackList(list);
 
-    if (m_sourceTrackList != list) {
-        clearTrackList();
+    playTrackAt(index);
 
-        m_sourceTrackList = list;
-
-        if(m_sourceTrackList) {
-            int c = m_sourceTrackList->count();
-            for(int i = 0; i < c; ++i) {
-                auto track = m_sourceTrackList->at(i);
-                track->addRef();
-                m_implicitTracks->appendRow(track);
-            }
-        }
-
-    }
-    m_implicitTracks->playTrackAtIndex(index);
-    m_implicitTracks->setShuffle(m_shuffle);
-
-    emit tracksChanged();
+    if (m_shuffle) setShuffle(m_shuffle, true);
 }
 
-void QSpotifyPlayQueue::playFromDifferentTrackList(QSpotifyTrackList *list)
+void QSpotifyPlayQueue::adaptTrackList(QSpotifyTrackList *list)
 {
+    qDebug() << "QSpotifyPlayQueue::adaptTrackList" << list << "m_sourceTrackList" << m_sourceTrackList;
+    if (!list) return;
     if (m_sourceTrackList != list) {
-        clearTrackList();
+        clearQueue();
 
         m_sourceTrackList = list;
 
-        if(m_sourceTrackList) {
-            int c = m_sourceTrackList->count();
-            for(int i = 0; i < c; ++i) {
-                auto track = m_sourceTrackList->at(i);
-                track->addRef();
-                m_implicitTracks->appendRow(track);
+        int size = list->count();
+        m_originalIndexes.reserve(size);
+        m_initialTracks.reserve(size);
+
+        int index = 0;
+        for (int i = 0; i < size; ++i) {
+            auto t = list->at(i);
+            if (t->isAvailable()) {
+                m_originalIndexes.push_back(index++);
+                t->addRef();
+                m_initialTracks.push_back(t);
             }
         }
+
+        appendRows(m_initialTracks);
+
+        qDebug() << "Added playlist: " << count();
     }
 }
 
 void QSpotifyPlayQueue::enqueueTrack(QSpotifyTrack *track)
 {
-    m_explicitTracks.enqueue(track);
+    qDebug() << "QSpotifyPlayQueue::enqueueTrack" << track;
+    if (track) {
+        track->addRef();
+        int insertIndex = 0;
+        if (m_currentTrack && (m_explicitTracks.empty() || m_currentTrack != m_explicitTracks.front()))
+            ++insertIndex;
+        insertIndex += m_explicitTracks.size();
 
-    emit tracksChanged();
+        m_explicitTracks.enqueue(track);
+
+        insertRow(insertIndex, track);
+    }
 }
 
-void QSpotifyPlayQueue::enqueueTracks(QSpotifyTrackList *tracks, bool reverse)
+void QSpotifyPlayQueue::enqueueTracks(QSpotifyTrackList *list)
 {
-    if(reverse) {
-        for(int i = tracks->count(); i >= 0; --i) {
-            auto t = tracks->at(i);
+    if (list) {
+        int insertIndex = 0;
+        if (m_currentTrack && (m_explicitTracks.empty() || m_currentTrack != m_explicitTracks.front()))
+            ++insertIndex;
+        insertIndex += m_explicitTracks.size();
+
+        for (auto t : *list) {
+            t->addRef();
             m_explicitTracks.enqueue(t);
-        }
-    } else {
-        for (int i = 0; i < tracks->count(); ++i) {
-            auto t = tracks->at(i);
-            m_explicitTracks.enqueue(t);
+            insertRow(insertIndex++, t);
         }
     }
-    emit tracksChanged();
 }
 
-void QSpotifyPlayQueue::selectTrack(int index)
+bool QSpotifyPlayQueue::playTrackAt(int i)
 {
-    auto track = m_implicitTracks->at(index);
-    if (m_currentExplicitTrack == track || m_implicitTracks->m_currentTrack == track)
+    qDebug() << "playTrackAtIndex" << i;
+    if (m_currentTrack) {
+        m_currentTrack->release();
+        m_currentTrack = nullptr;
+    }
+
+    if (i < 0 || i >= count()) {
+        m_currentIndex = 0;
+        emit currentPlayIndexChanged();
+        return false;
+    }
+
+    while (i > 0) {
+        auto t = takeRow(0);
+        if (!m_explicitTracks.empty() && t == m_explicitTracks.front()) {
+            t->release();
+            m_explicitTracks.takeFirst();
+        }
+        --i;
+    }
+
+    m_currentTrack = at(0);
+    m_currentTrack->addRef();
+//    if (!m_explicitTracks.empty() && m_currentTrack == m_explicitTracks.front())
+//        m_explicitTracks.takeFirst();
+//    else
+//        Q_ASSERT(!m_explicitTracks.contains(m_currentTrack)); // TODO fix this
+    m_currentIndex = 0;
+    emit currentPlayIndexChanged();
+    playCurrentTrack();
+    return true;
+}
+
+void QSpotifyPlayQueue::playCurrentTrack()
+{
+    qDebug() << "playCurrentTrack";
+    if (!m_currentTrack)
         return;
 
-    if (m_currentExplicitTrack) {
-        m_currentExplicitTrack->release();
-        m_currentExplicitTrack = nullptr;
-    }
-
-    int explicitPos = m_explicitTracks.indexOf(track);
-    if (explicitPos != -1) {
-        m_explicitTracks.removeAt(explicitPos);
-        m_currentExplicitTrack = track;
-        if (m_currentExplicitTrack->isLoaded())
-            onTrackReady();
-        else
-            connect(m_currentExplicitTrack, SIGNAL(isLoadedChanged()), this, SLOT(onTrackReady()));
-    } else {
-        m_implicitTracks->playTrackAtIndex(m_implicitTracks->indexOf(track));
-    }
-
-    emit tracksChanged();
+    if (m_currentTrack->isLoaded())
+        onTrackReady();
+    else
+        connect(m_currentTrack, SIGNAL(isLoadedChanged()), this, SLOT(onTrackReady()));
 }
 
-bool QSpotifyPlayQueue::isExplicitTrack(int index)
+void QSpotifyPlayQueue::shuffleInitialTracks()
 {
-    return index > m_currentTrackIndex && index <= m_currentTrackIndex + m_explicitTracks.count();
+    // Fisher Yates algo
+    //    To shuffle an array a of n elements (indices 0..n-1):
+    //      for i from n − 1 downto 1 do
+    //           j ← random integer with 0 ≤ j ≤ i
+    //           exchange a[j] and a[i]
+    qsrand(QTime::currentTime().msec());
+
+    int size = m_initialTracks.size();
+
+    for (int i = size - 1; i > 0; --i) {
+        int  j = qrand() % i;
+        if (i != j) {
+            std::swap(m_originalIndexes[i], m_originalIndexes[j]);
+            std::swap(m_initialTracks[i], m_initialTracks[j]);
+        }
+    }
+}
+
+void QSpotifyPlayQueue::clear()
+{
+    qDebug() << "QSpotifyPlayQueue::clear()";
+    clearQueue();
 }
 
 void QSpotifyPlayQueue::playNext(bool repeatOne)
 {
     if (repeatOne) {
-        QSpotifySession::instance()->play(m_currentExplicitTrack ? m_currentExplicitTrack : m_implicitTracks->m_currentTrack, true);
+        QSpotifySession::instance()->play(m_currentTrack, true);
     } else {
-        if (m_currentExplicitTrack) {
-            m_currentExplicitTrack->release();
-            m_currentExplicitTrack = nullptr;
-        }
-
-        if (m_explicitTracks.isEmpty()) {
-            if (!m_implicitTracks->next()) {
-                if (m_repeat) {
-                    m_implicitTracks->play();
-                } else {
-                    QSpotifySession::instance()->stop();
-                    clearTrackList();
-                }
-            }
+        if (1 < count()) {
+            playTrackAt(1);
         } else {
-            m_currentExplicitTrack = m_explicitTracks.dequeue();
-            if (m_currentExplicitTrack->isLoaded())
-                onTrackReady();
-            else
-                connect(m_currentExplicitTrack, SIGNAL(isLoadedChanged()), this, SLOT(onTrackReady()));
+            if (m_repeat) {
+                takeRow(0);
+                appendRows(m_initialTracks);
+                playTrackAt(0);
+            } else {
+                QSpotifySession::instance()->stop();
+                clearQueue();
+            }
         }
     }
-
-    emit tracksChanged();
 }
 
 void QSpotifyPlayQueue::playPrevious()
 {
-    if (m_currentExplicitTrack) {
-        m_currentExplicitTrack->release();
-        m_currentExplicitTrack = nullptr;
-    }
-
-    if (!m_implicitTracks->previous()) {
+    int currentIndex = m_initialTracks.indexOf(m_currentTrack);
+    if (currentIndex - 1 >= 0) {
+        auto trackToAdd = m_initialTracks.at(currentIndex - 1);
+        int index = indexOf(trackToAdd);
+        if (index > - 1 && index < count()) takeRow(index);
+        insertRow(0, trackToAdd);
+        playTrackAt(0);
+    } else {
         if (m_repeat) {
-            m_implicitTracks->playLast();
+            auto trackToAdd = m_initialTracks.at(m_initialTracks.size()-1);
+            int index = indexOf(trackToAdd);
+            if (index > - 1 && index < count()) takeRow(index);
+            insertRow(0, trackToAdd);
+            playTrackAt(0);
         } else {
             QSpotifySession::instance()->stop();
-            clearTrackList();
+            clearQueue();
         }
     }
-
-    emit tracksChanged();
 }
 
-void QSpotifyPlayQueue::clear()
+void QSpotifyPlayQueue::clearQueue()
 {
-    if (m_currentExplicitTrack) {
-        m_currentExplicitTrack->release();
-        m_currentExplicitTrack = nullptr;
+    qDebug() << "QSpotifyPlayQueue::clearQueue()";
+    if (m_dataList.size()) {
+        beginRemoveRows(QModelIndex(),0, m_dataList.size()-1);
+        for (auto t : m_dataList)
+            disconnect(t, &QSpotifyObject::dataChanged, this, &QSpotifyPlayQueue::itemDataChanged);
+        m_dataList.clear();
+        endRemoveRows();
     }
 
-    clearTrackList();
+    if (m_currentTrack) {
+        m_currentTrack->release();
+        m_currentTrack = nullptr;
+        m_currentIndex = 0;
+    }
 
-    m_explicitTracks.clear();
+    for (auto t : m_initialTracks)
+        t->release();
+    m_initialTracks.clear();
+    m_originalIndexes.clear();
+    m_sourceTrackList = nullptr;
+
+    while (!m_explicitTracks.empty())
+        m_explicitTracks.takeFirst()->release();
 }
 
-void QSpotifyPlayQueue::setShuffle(bool s)
+void QSpotifyPlayQueue::setShuffle(bool s, bool force)
 {
-    if (m_shuffle == s)
-        return;
-    m_shuffle = s;
-    m_implicitTracks->setShuffle(s);
+    if (!force && s == m_shuffle) return;
+    qDebug() << "QSpotifyPlayQueue::setShuffle" << s;
 
-    emit tracksChanged();
+    QSpotifyTrackList::setShuffle(s);
+    if (s) {
+        shuffleInitialTracks();
+        int currentIndex = m_initialTracks.indexOf(m_currentTrack);
+        if (currentIndex >= 0) {
+            int insertIndex = 1 + m_explicitTracks.size();
+            while (count() > insertIndex) takeRow(insertIndex);
+            for (int i = currentIndex + 1; i < m_initialTracks.size(); ++i)
+                appendRow(m_initialTracks.at(i));
+        } else {
+            // Current track is explicit.
+            int insertIndex = 1 + m_explicitTracks.size();
+            if (insertIndex < count()) {
+                auto track = at(insertIndex);
+                int initialIndex = m_initialTracks.indexOf(track);
+                while (count() > insertIndex) takeRow(insertIndex);
+                for (int i = initialIndex; i < m_initialTracks.size(); ++i)
+                    appendRow(m_initialTracks.at(i));
+            }
+
+        }
+    } else {
+        int size = m_initialTracks.size();
+        // TODO fix for explicit
+        int trackIndex = m_initialTracks.indexOf(m_currentTrack);
+        trackIndex = m_originalIndexes[trackIndex];
+
+        for (int i = 0; i < size; ++i) {
+            int origIndex = m_originalIndexes[i];
+            while (origIndex != i) {
+                // we place the current item at its correct position.
+                std::swap(m_initialTracks[i], m_initialTracks[origIndex]);
+                // now we want to find the correct one for our location.
+                int nextIndex = m_originalIndexes[origIndex];
+                m_originalIndexes[origIndex] = origIndex;
+                origIndex = nextIndex;
+            }
+        }
+        for (int i = 0; i < m_originalIndexes.size(); ++i) m_originalIndexes[i] = i;
+
+        // TODO fix for explicit
+        int insertIndex = 1 + m_explicitTracks.size();
+        while (count() > insertIndex) takeRow(insertIndex);
+        for (int i = trackIndex + 1; i < m_initialTracks.size(); ++i)
+            appendRow(m_initialTracks.at(i));
+    }
 }
 
 void QSpotifyPlayQueue::setRepeat(bool r)
 {
-    if (m_repeat == r)
-        return;
+    if (m_repeat == r) return;
 
     m_repeat = r;
-
-    emit tracksChanged();
 }
 
 void QSpotifyPlayQueue::onTrackReady()
 {
+    qDebug() << "QSpotifyPlayQueue::onTrackReady";
     disconnect(this, SLOT(onTrackReady()));
-    if (m_currentExplicitTrack)
-        QSpotifySession::instance()->play(m_currentExplicitTrack);
+    if (m_currentTrack) QSpotifySession::instance()->play(m_currentTrack);
 }
-
-QSpotifyTrackList *QSpotifyPlayQueue::tracks() const
-{
-    return m_implicitTracks;
-}
-// TODO implement explicit track behaviour again
-//{
-//    QList<QObject *> list;
-
-//    if (!m_implicitTracks)
-//        return list;
-
-//    int currIndex = 0;
-
-//    if (m_shuffle) {
-//        for (int i = 0; i < m_implicitTracks->m_shuffleList.count(); ++i) {
-//            std::shared_ptr<QSpotifyTrack>  t = m_implicitTracks->at(m_implicitTracks->m_shuffleList.at(i));
-//            // FIXME POINTER escape
-//            list.append((QObject*)t.get());
-//            if (t == m_implicitTracks->m_currentTrack)
-//                currIndex = i;
-//        }
-//    } else {
-//        if (m_implicitTracks->m_reverse) {
-//            int i = m_implicitTracks->previousAvailable(m_implicitTracks->count());
-//            while (i >= 0) {
-//                std::shared_ptr<QSpotifyTrack>  t = m_implicitTracks->at(i);
-//                // FIXME POINTER escape
-//                list.append((QObject*)t.get());
-//                if (t == m_implicitTracks->m_currentTrack)
-//                    currIndex = m_implicitTracks->count() - 1 - i;
-//                i = m_implicitTracks->previousAvailable(i);
-//            }
-//        } else {
-//            int i = m_implicitTracks->nextAvailable(-1);
-//            while (i < m_implicitTracks->count()) {
-//                std::shared_ptr<QSpotifyTrack>  t = m_implicitTracks->at(i);
-//                // FIXME POINTER escape
-//                list.append((QObject*)t.get());
-//                if (t == m_implicitTracks->m_currentTrack)
-//                    currIndex = i;
-//                i = m_implicitTracks->nextAvailable(i);
-//            }
-//        }
-//    }
-
-//    if (m_currentExplicitTrack)
-//        // FIXME POINTER escape
-//        list.insert(++currIndex, (QObject*)m_currentExplicitTrack.get());
-//    for (int i = 0; i < m_explicitTracks.count(); ++i)
-//        // FIXME POINTER escape
-//        list.insert(++currIndex, (QObject*)m_explicitTracks.at(i).get());
-
-//    if (m_currentExplicitTrack)
-//        // FIXME POINTER escape
-//        m_currentTrackIndex = list.indexOf((QObject *)m_currentExplicitTrack.get());
-//    else if (m_implicitTracks->m_currentTrack)
-//        // FIXME POINTER escape
-//        m_currentTrackIndex = list.indexOf((QObject *)m_implicitTracks->m_currentTrack.get());
-
-//    return list;
-//}
 
 bool QSpotifyPlayQueue::isCurrentTrackList(QSpotifyTrackList *tl)
 {
     return m_sourceTrackList == tl;
 }
 
-void QSpotifyPlayQueue::tracksUpdated()
+bool QSpotifyPlayQueue::isExplicitTrack(int index)
 {
-    emit tracksChanged();
+    return index >= 0 && index < count() && m_explicitTracks.contains(at(index));
 }
 
 void QSpotifyPlayQueue::onOfflineModeChanged()
 {
-    if (m_shuffle && m_implicitTracks)
-        m_implicitTracks->setShuffle(true);
-    emit tracksChanged();
-}
-
-void QSpotifyPlayQueue::clearTrackList()
-{
-    m_implicitTracks->clear();
-    m_sourceTrackList = nullptr;
+    qDebug() << "NYI";
+//    if (m_shuffle && m_implicitTracks)
+//        m_implicitTracks->setShuffle(true);
+    //    emit tracksChanged();
 }

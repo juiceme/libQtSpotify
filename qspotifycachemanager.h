@@ -26,7 +26,6 @@ public:
     QSpotifyAlbum *getAlbum(sp_album *a);
 
     void cacheInfo();
-
 private:
     QSpotifyCacheManager() = default;
 

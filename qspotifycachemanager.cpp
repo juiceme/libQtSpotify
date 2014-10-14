@@ -52,6 +52,7 @@ QSpotifyTrack *QSpotifyCacheManager::getTrack(sp_track *t, QSpotifyPlaylist *pla
 
     auto qtrack = new QSpotifyTrack(t, playlist);
     qtrack->init();
+    // XXX: possibility to not display unavalaible tracks: if (!qtrack->isAvailable()) return nullptr;
 
     m_tracks.insert(t, qtrack);
 

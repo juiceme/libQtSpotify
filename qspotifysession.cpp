@@ -69,6 +69,7 @@
 #include "spotify_key.h"
 #include "qspotifyplaylist.h"
 #include "qspotifycachemanager.h"
+#include "qspotifytrack.h"
 
 #include "qspotifyaudiothreadworker.h"
 
@@ -351,7 +352,7 @@ void QSpotifySession::init()
 
     m_lfmLoggedIn = false;
 
-    connect(this, SIGNAL(offlineModeChanged()), m_playQueue, SLOT(onOfflineModeChanged()));
+//    FIXME: connect(this, SIGNAL(offlineModeChanged()), m_playQueue, SLOT(onOfflineModeChanged()));
 
     new MPRISMediaPlayer(this);
     new MPRISMediaPlayerPlayer(this);
@@ -719,7 +720,7 @@ void QSpotifySession::logout(bool keepLoginInfo)
         return;
 
     stop();
-    m_playQueue->clear();
+    m_playQueue->clearQueue();
 
     if (!keepLoginInfo) {
         setOfflineMode(false);

@@ -46,10 +46,6 @@
 
 QSpotifyTrackList::QSpotifyTrackList(QObject *parent)
     : ListModelBase<QSpotifyTrack>(parent)
-    , m_currentIndex(0)
-    , m_currentTrack(0)
-    , m_shuffle(false)
-    , m_shuffleIndex(0)
 {
     m_roles[NameRole] = "trackName";
     m_roles[ArtistsRole] = "artists";
@@ -127,135 +123,17 @@ QVariant QSpotifyTrackList::data(const QModelIndex &index, int role) const
 
 void QSpotifyTrackList::play()
 {
-    if (count() == 0)
-        return;
-
-    if (m_shuffle)
-        playTrackAtIndex(m_shuffleList.first());
-    else
-        playTrackAtIndex(nextAvailable(-1));
+    if (count() == 0) return;
+    playTrack(nextAvailable(-1));
 }
 
 void QSpotifyTrackList::playTrack(int index)
 {
     if(at(index)->isCurrentPlayingTrack()) {
         // just adapt the tracklist (it might be that we have now a diffrent tracklist)
-        QSpotifySession::instance()->m_playQueue->playFromDifferentTrackList(this);
+        QSpotifySession::instance()->m_playQueue->adaptTrackList(this);
     } else {
         QSpotifySession::instance()->m_playQueue->playTrack(this, index);
-    }
-}
-
-bool QSpotifyTrackList::playTrackAtIndex(int i)
-{
-    if (i < 0 || i >= count()) {
-        m_currentTrack->release();
-        m_currentTrack = nullptr;
-        m_currentIndex = 0;
-        emit currentPlayIndexChanged();
-        return false;
-    }
-
-    if (m_shuffle)
-        m_shuffleIndex = m_shuffleList.indexOf(i);
-    m_currentTrack = at(i);
-    m_currentIndex = i;
-    emit currentPlayIndexChanged();
-    playCurrentTrack();
-    return true;
-}
-
-bool QSpotifyTrackList::next()
-{
-    if (m_shuffle) {
-        if (m_shuffleIndex + 1 >= m_shuffleList.count()) {
-            m_currentTrack->release();
-            m_currentTrack = nullptr;
-            return false;
-        }
-        return playTrackAtIndex(m_shuffleList.at(m_shuffleIndex + 1));
-    } else {
-        int index = indexOf(m_currentTrack);
-        if (index == -1) {
-            int newi = qMin(m_currentIndex, count() - 1);
-            return playTrackAtIndex(nextAvailable(newi - 1));
-        }
-        return playTrackAtIndex(nextAvailable(index));
-    }
-}
-
-bool QSpotifyTrackList::previous()
-{
-    if (m_shuffle) {
-        if (m_shuffleIndex - 1 < 0) {
-            m_currentTrack->release();
-            m_currentTrack = nullptr;
-            return false;
-        }
-        return playTrackAtIndex(m_shuffleList.at(m_shuffleIndex - 1));
-    } else {
-        int index = indexOf(m_currentTrack);
-        if (index == -1) {
-            int newi = qMin(m_currentIndex, count() - 1);
-            return playTrackAtIndex(previousAvailable(newi));
-        }
-        return playTrackAtIndex(previousAvailable(index));
-    }
-}
-
-void QSpotifyTrackList::playLast()
-{
-    if (count() == 0)
-        return;
-
-    if (m_shuffle)
-        playTrackAtIndex(m_shuffleList.last());
-    else
-        playTrackAtIndex(previousAvailable(count()));
-}
-
-void QSpotifyTrackList::playCurrentTrack()
-{
-    if (!m_currentTrack)
-        return;
-
-    if (m_currentTrack->isLoaded())
-        onTrackReady();
-    else
-        connect(m_currentTrack, SIGNAL(isLoadedChanged()), this, SLOT(onTrackReady()));
-}
-
-void QSpotifyTrackList::onTrackReady()
-{
-    disconnect(this, SLOT(onTrackReady()));
-    QSpotifySession::instance()->play(m_currentTrack);
-}
-
-void QSpotifyTrackList::setShuffle(bool s)
-{
-    m_shuffle = s;
-
-    m_shuffleList.clear();
-    m_shuffleIndex = 0;
-    bool currentTrackStillExists = m_currentTrack && contains(m_currentTrack);
-
-    if (m_shuffle) {
-        qsrand(QTime::currentTime().msec());
-        int currentTrackIndex = 0;
-        if (currentTrackStillExists) {
-            currentTrackIndex = indexOf(m_currentTrack);
-            m_shuffleList.append(currentTrackIndex);
-        }
-        QList<int> indexes;
-        for (int i = 0; i < count(); ++i) {
-            if ((currentTrackStillExists && i == currentTrackIndex) || !at(i)->isAvailable())
-                continue;
-            indexes.append(i);
-        }
-        while (!indexes.isEmpty()) {
-            int i = indexes.takeAt(indexes.count() == 1 ? 0 : (qrand() % (indexes.count() - 1)));
-            m_shuffleList.append(i);
-        }
     }
 }
 
@@ -265,30 +143,23 @@ int QSpotifyTrackList::removeAll(QSpotifyTrack *ptr)
     beginResetModel();
     count = m_dataList.removeAll(ptr);
     endResetModel();
-    return count;
+    return count;   
 }
 
 int QSpotifyTrackList::totalDuration() const
 {
-    qint64 total = 0;
-    for (int i = 0; i < count(); ++i)
-        total += at(i)->duration();
-
-    return total;
+    return std::accumulate(begin(), end(), 0,
+                           [](int total, QSpotifyTrack *t){ return total + t->duration();});
 }
 
 int QSpotifyTrackList::nextAvailable(int i)
 {
-    do {
-        ++i;
-    } while (i < count() && !at(i)->isAvailable());
+    do { ++i; } while (i < count() && !at(i)->isAvailable());
     return i;
 }
 
 int QSpotifyTrackList::previousAvailable(int i)
 {
-    do {
-        --i;
-    } while (i > -1 && !at(i)->isAvailable());
+    do { --i; } while (i > -1 && !at(i)->isAvailable());
     return i;
 }

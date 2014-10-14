@@ -358,11 +358,6 @@ void QSpotifySearch::populateTracks(sp_search *search)
     if (m_enablePreview)
         m_trackResultsPreview->clear();
 
-    auto sourceList = QSpotifySession::instance()->playQueue()->m_sourceTrackList;
-    if(sourceList == m_trackResults || sourceList == m_trackResultsPreview) {
-        QSpotifySession::instance()->playQueue()->m_sourceTrackList = nullptr;
-    }
-
     if (search) {
         int c = sp_search_num_tracks(search);
         for (int i = 0; i < c; ++i) {
@@ -403,11 +398,6 @@ void QSpotifySearch::populateResults(sp_search *search)
         m_artistResults->clear();
         m_playlistResults->clear();
         m_trackResults->clear();
-
-        auto sourceList = QSpotifySession::instance()->playQueue()->m_sourceTrackList;
-        if(sourceList == m_trackResults || sourceList == m_trackResultsPreview) {
-            QSpotifySession::instance()->playQueue()->m_sourceTrackList = nullptr;
-        }
 
         if (m_enablePreview) {
             m_albumResultsPreview->clear();

@@ -46,13 +46,12 @@
 #include <QtMultimedia/QAudio>
 #include <libspotify/api.h>
 
-#include "shared_ptr.h"
-
 class QAudioOutput;
 class QImage;
 class QNetworkConfigurationManager;
 class QSpotifyPlayQueue;
 class QSpotifyUser;
+class QSpotifyTrack;
 
 class QSpotifySession : public QObject
 {

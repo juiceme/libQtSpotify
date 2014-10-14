@@ -42,8 +42,6 @@
 #ifndef QSPOTIFYTRACK_H
 #define QSPOTIFYTRACK_H
 
-#include <memory>
-
 #include <QtCore/QDateTime>
 #include <QtCore/QVector>
 
