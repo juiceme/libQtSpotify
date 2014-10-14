@@ -182,7 +182,7 @@ QSpotifyPlaylist::QSpotifyPlaylist(Type type, sp_playlist *playlist, bool incrRe
     Q_ASSERT(playlist);
     m_trackList = nullptr;
     if (type != Folder && type != None)
-        m_trackList = new QSpotifyTrackList(this, type == Starred || type == Inbox);
+        m_trackList = new QSpotifyTrackList(this);
 
     if (incrRefCount)
         sp_playlist_add_ref(playlist);
