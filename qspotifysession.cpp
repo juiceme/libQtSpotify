@@ -1135,6 +1135,54 @@ void QSpotifySession::setPrivateSession(bool on)
     sp_session_set_private_session(m_sp_session, on);
 }
 
+void QSpotifySession::handleUri(QString uri)
+{
+    qDebug() << "QSpotifySession::handleUri";
+    sp_link *link = sp_link_create_from_string(uri.toLatin1().data());
+    const sp_linktype link_type = sp_link_type(link);
+    switch (link_type) {
+    case SP_LINKTYPE_INVALID: // TODO: error to user
+        break;
+    case SP_LINKTYPE_TRACK: {
+        sp_track *track = sp_link_as_track(link);
+        // FIXME leaks tracklist
+        QSpotifyTrackList *track_list = new QSpotifyTrackList();
+        auto q_track = QSpotifyCacheManager::instance().getTrack(track);
+        track_list->appendRow(q_track);
+        m_playQueue->playTrack(track_list, 0);
+        break;
+    }
+    case SP_LINKTYPE_ALBUM: // TODO: add support
+        qDebug() << "Album links not supported!";
+        break;
+    case SP_LINKTYPE_ARTIST: // TODO: add support
+        qDebug() << "Artist links not supported!";
+        break;
+    case SP_LINKTYPE_SEARCH: // TODO: add support
+        qDebug() << "Search links not supported!";
+        break;
+    case SP_LINKTYPE_PLAYLIST: // TODO: add support
+        qDebug() << "Playlist links not supported!";
+        break;
+    case SP_LINKTYPE_PROFILE: // TODO: add support
+        qDebug() << "Profile links not supported!";
+        break;
+    case SP_LINKTYPE_STARRED: // TODO: add support
+        qDebug() << "Starred links not supported!";
+        break;
+    case SP_LINKTYPE_LOCALTRACK: // TODO: add support
+        qDebug() << "Local track links not supported!";
+        break;
+    case SP_LINKTYPE_IMAGE: // TODO: add support
+        qDebug() << "Image links not supported!";
+        break;
+    case SP_LINKTYPE_TOPLIST: // TODO: add support
+        qDebug() << "Toplist links not supported!";
+        break;
+    }
+    sp_link_release(link);
+}
+
 void QSpotifySession::setSyncOverMobile(bool s)
 {
     qDebug() << "QSpotifySession::setSyncOverMobile";
