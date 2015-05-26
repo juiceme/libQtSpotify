@@ -121,7 +121,7 @@ public:
     bool seen() const { return m_seen; }
     void setSeen(bool s);
     QString creator() const { return m_creator; }
-    QDateTime creationDate() const { return m_creationDate; }
+    QDateTime creationDate() const { return QDateTime::fromTime_t(m_creationDate); }
     OfflineStatus offlineStatus() const { return m_offlineStatus; }
 
     bool isCurrentPlayingTrack() const { return m_isCurrentPlayingTrack; }
@@ -168,7 +168,6 @@ private:
 
     QSpotifyAlbum *m_album{};
     QSpotifyArtist *m_artist{};
-    QString m_albumString;
     QString m_artistsString;
     int m_discNumber{};
     int m_duration{};
@@ -181,7 +180,7 @@ private:
     int m_popularity{};
     bool m_seen{true};
     QString m_creator;
-    QDateTime m_creationDate;
+    int m_creationDate;
     OfflineStatus m_offlineStatus{No};
 
     bool m_isCurrentPlayingTrack{};

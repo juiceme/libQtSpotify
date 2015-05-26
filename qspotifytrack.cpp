@@ -119,8 +119,7 @@ bool QSpotifyTrack::updateData()
                     updated = true;
                 }*/
 
-                int cd = sp_playlist_track_create_time(m_playlist->m_sp_playlist, tindex);
-                QDateTime dt = QDateTime::fromTime_t(cd);
+                int dt = sp_playlist_track_create_time(m_playlist->m_sp_playlist, tindex);
                 if (m_creationDate != dt) {
                     m_creationDate = dt;
                     updated = true;
@@ -163,12 +162,12 @@ bool QSpotifyTrack::updateData()
 
         if (!m_artist) {
             int count = sp_track_num_artists(m_sp_track);
+            QStringList artistNames;
+            artistNames.reserve(count);
             for (int i = 0; i < count; ++i) {
                 if (auto sartist = sp_track_artist(m_sp_track, i)) {
                     if (auto artist = QSpotifyCacheManager::instance().getArtist(sartist)) {
-                        m_artistsString += artist->name();
-                        if (i != count - 1)
-                            m_artistsString += QLatin1String(", ");
+                        artistNames << artist->name();
                         if(0 == i)
                             m_artist = artist;
                         else
@@ -176,6 +175,7 @@ bool QSpotifyTrack::updateData()
                     }
                 }
             }
+            m_artistsString = artistNames.join(QStringLiteral(", "));
             updated = true;
         }
         if (!m_album) {
@@ -183,7 +183,6 @@ bool QSpotifyTrack::updateData()
                 if (auto alb = QSpotifyCacheManager::instance().getAlbum(salb)) {
                     m_album = alb;
                     updated = true;
-                    m_albumString = m_album->name();
                 }
             }
         }
@@ -209,7 +208,9 @@ QString QSpotifyTrack::artists() const
 
 QString QSpotifyTrack::album() const
 {
-    return m_albumString;
+    if (!m_album)
+        return QString();
+    return m_album->name();
 }
 
 QString QSpotifyTrack::albumCoverId() const
