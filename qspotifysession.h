@@ -157,8 +157,7 @@ public:
     QSpotifyUser *user() const { return m_user; }
 
     // Note that here the pointer escapes.
-    QSpotifyTrack *currentTrack() const { return m_currentTrack.get(); }
-    std::shared_ptr<QSpotifyTrack> currentTrackShared() const { return m_currentTrack; }
+    QSpotifyTrack *currentTrack() const { return m_currentTrack; }
     bool hasCurrentTrack() const { return m_currentTrack != 0; }
     int currentTrackPosition() const { return m_currentTrackPosition; }
     int currentTrackPlayedDuration() const { return m_currentTrackPlayedDuration; }
@@ -174,7 +173,7 @@ public:
 
     bool isOnline() const;
 
-    void play(std::shared_ptr<QSpotifyTrack> track, bool restart = false);
+    void play(QSpotifyTrack *track, bool restart = false);
 
     bool isPlaying() const { return m_isPlaying; }
 
@@ -210,7 +209,7 @@ public Q_SLOTS:
     void seek(int offset);
     void playNext();
     void playPrevious();
-    void enqueue(std::shared_ptr<QSpotifyTrack> track);
+    void enqueue(QSpotifyTrack *track);
     void clearCache();
 
     void lfmLogin(const QString &lfmUser, const QString &lfmPass);
@@ -300,7 +299,7 @@ private:
     bool m_ignoreNextConnectionError;
 
     QSpotifyPlayQueue *m_playQueue;
-    std::shared_ptr<QSpotifyTrack> m_currentTrack;
+    QSpotifyTrack *m_currentTrack;
     bool m_isPlaying;
     int m_currentTrackPosition;
     int m_currentTrackPlayedDuration;

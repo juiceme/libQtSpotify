@@ -63,7 +63,8 @@ QSpotifyPlayQueue::~QSpotifyPlayQueue()
 void QSpotifyPlayQueue::playTrack(QSpotifyTrackList *list, int index)
 {
     if (m_currentExplicitTrack) {
-        m_currentExplicitTrack.reset();
+        m_currentExplicitTrack->release();
+        m_currentExplicitTrack = nullptr;
     }
 
     if (m_sourceTrackList != list) {
@@ -73,8 +74,11 @@ void QSpotifyPlayQueue::playTrack(QSpotifyTrackList *list, int index)
 
         if(m_sourceTrackList) {
             int c = m_sourceTrackList->count();
-            for(int i = 0; i < c; ++i)
-                m_implicitTracks->appendRow(m_sourceTrackList->at(i));
+            for(int i = 0; i < c; ++i) {
+                auto track = m_sourceTrackList->at(i);
+                track->addRef();
+                m_implicitTracks->appendRow(track);
+            }
         }
 
     }
@@ -93,13 +97,16 @@ void QSpotifyPlayQueue::playFromDifferentTrackList(QSpotifyTrackList *list)
 
         if(m_sourceTrackList) {
             int c = m_sourceTrackList->count();
-            for(int i = 0; i < c; ++i)
-                m_implicitTracks->appendRow(m_sourceTrackList->at(i));
+            for(int i = 0; i < c; ++i) {
+                auto track = m_sourceTrackList->at(i);
+                track->addRef();
+                m_implicitTracks->appendRow(track);
+            }
         }
     }
 }
 
-void QSpotifyPlayQueue::enqueueTrack(std::shared_ptr<QSpotifyTrack> track)
+void QSpotifyPlayQueue::enqueueTrack(QSpotifyTrack *track)
 {
     m_explicitTracks.enqueue(track);
 
@@ -110,12 +117,12 @@ void QSpotifyPlayQueue::enqueueTracks(QSpotifyTrackList *tracks, bool reverse)
 {
     if(reverse) {
         for(int i = tracks->count(); i >= 0; --i) {
-            std::shared_ptr<QSpotifyTrack> t = tracks->at(i);
+            auto t = tracks->at(i);
             m_explicitTracks.enqueue(t);
         }
     } else {
         for (int i = 0; i < tracks->count(); ++i) {
-            std::shared_ptr<QSpotifyTrack> t = tracks->at(i);
+            auto t = tracks->at(i);
             m_explicitTracks.enqueue(t);
         }
     }
@@ -129,7 +136,8 @@ void QSpotifyPlayQueue::selectTrack(int index)
         return;
 
     if (m_currentExplicitTrack) {
-        m_currentExplicitTrack.reset();
+        m_currentExplicitTrack->release();
+        m_currentExplicitTrack = nullptr;
     }
 
     int explicitPos = m_explicitTracks.indexOf(track);
@@ -139,7 +147,7 @@ void QSpotifyPlayQueue::selectTrack(int index)
         if (m_currentExplicitTrack->isLoaded())
             onTrackReady();
         else
-            connect(m_currentExplicitTrack.get(), SIGNAL(isLoadedChanged()), this, SLOT(onTrackReady()));
+            connect(m_currentExplicitTrack, SIGNAL(isLoadedChanged()), this, SLOT(onTrackReady()));
     } else {
         m_implicitTracks->playTrackAtIndex(m_implicitTracks->indexOf(track));
     }
@@ -158,7 +166,8 @@ void QSpotifyPlayQueue::playNext(bool repeatOne)
         QSpotifySession::instance()->play(m_currentExplicitTrack ? m_currentExplicitTrack : m_implicitTracks->m_currentTrack, true);
     } else {
         if (m_currentExplicitTrack) {
-            m_currentExplicitTrack.reset();
+            m_currentExplicitTrack->release();
+            m_currentExplicitTrack = nullptr;
         }
 
         if (m_explicitTracks.isEmpty()) {
@@ -175,7 +184,7 @@ void QSpotifyPlayQueue::playNext(bool repeatOne)
             if (m_currentExplicitTrack->isLoaded())
                 onTrackReady();
             else
-                connect(m_currentExplicitTrack.get(), SIGNAL(isLoadedChanged()), this, SLOT(onTrackReady()));
+                connect(m_currentExplicitTrack, SIGNAL(isLoadedChanged()), this, SLOT(onTrackReady()));
         }
     }
 
@@ -185,7 +194,8 @@ void QSpotifyPlayQueue::playNext(bool repeatOne)
 void QSpotifyPlayQueue::playPrevious()
 {
     if (m_currentExplicitTrack) {
-        m_currentExplicitTrack.reset();
+        m_currentExplicitTrack->release();
+        m_currentExplicitTrack = nullptr;
     }
 
     if (!m_implicitTracks->previous()) {
@@ -203,7 +213,8 @@ void QSpotifyPlayQueue::playPrevious()
 void QSpotifyPlayQueue::clear()
 {
     if (m_currentExplicitTrack) {
-        m_currentExplicitTrack.reset();
+        m_currentExplicitTrack->release();
+        m_currentExplicitTrack = nullptr;
     }
 
     clearTrackList();

@@ -56,7 +56,7 @@ class QSpotifyArtist;
 class QSpotifyPlaylist;
 class QSpotifyTrackList;
 
-class QSpotifyTrack : public QSpotifyObject, public std::enable_shared_from_this<QSpotifyTrack>
+class QSpotifyTrack : public QSpotifyObject
 {
     Q_OBJECT
     Q_PROPERTY(QString name READ name NOTIFY trackDataChanged)
@@ -116,8 +116,8 @@ public:
     void setIsStarred(bool v);
     QString name() const { return m_name; }
     int popularity() const { return m_popularity; }
-    QSpotifyAlbum *albumObject() const { return m_album.get(); }
-    QSpotifyArtist *artistObject() const { return m_artist.get(); }
+    QSpotifyAlbum *albumObject() const { return m_album; }
+    QSpotifyArtist *artistObject() const { return m_artist; }
     bool seen() const { return m_seen; }
     void setSeen(bool s);
     QString creator() const { return m_creator; }
@@ -165,8 +165,8 @@ private:
     sp_track *m_sp_track;
     QSpotifyPlaylist *m_playlist;
 
-    std::shared_ptr<QSpotifyAlbum> m_album;
-    std::shared_ptr<QSpotifyArtist> m_artist;
+    QSpotifyAlbum *m_album;
+    QSpotifyArtist *m_artist;
     QString m_albumString;
     QString m_artistsString;
     int m_discNumber;

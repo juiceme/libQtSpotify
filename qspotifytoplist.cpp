@@ -98,7 +98,13 @@ QSpotifyToplist::QSpotifyToplist(QObject *parent)
 
 QSpotifyToplist::~QSpotifyToplist()
 {
-    clear();
+    clear(false);
+    QMutexLocker lock(&g_mutex);
+    for (auto it = g_toplistObjects.begin(); it != g_toplistObjects.end();)
+    {
+        if (it.value() == this) it = g_toplistObjects.erase(it);
+        else ++it;
+    }
 }
 
 void QSpotifyToplist::updateResults()
@@ -124,13 +130,13 @@ void QSpotifyToplist::updateResults()
 
 }
 
-void QSpotifyToplist::clear()
+void QSpotifyToplist::clear(bool emitResults)
 {
     m_trackResults->clear();
     m_albumResults->clear();
     m_artistResults->clear();
 
-    emit resultsChanged();
+    if (emitResults) emit resultsChanged();
 
     QMutexLocker lock(&g_mutex);
     if (m_sp_browsetracks)
@@ -170,8 +176,8 @@ void QSpotifyToplist::populateResults(sp_toplistbrowse *tl)
                 auto track = QSpotifyCacheManager::instance().getTrack(strack);
 
                 m_trackResults->appendRow(track);
-                connect(QSpotifySession::instance()->user()->starredList(), SIGNAL(tracksAdded(QVector<sp_track*>)), track.get(), SLOT(onStarredListTracksAdded(QVector<sp_track*>)));
-                connect(QSpotifySession::instance()->user()->starredList(), SIGNAL(tracksRemoved(QVector<sp_track*>)), track.get(), SLOT(onStarredListTracksRemoved(QVector<sp_track*>)));
+                connect(QSpotifySession::instance()->user()->starredList(), SIGNAL(tracksAdded(QVector<sp_track*>)), track, SLOT(onStarredListTracksAdded(QVector<sp_track*>)));
+                connect(QSpotifySession::instance()->user()->starredList(), SIGNAL(tracksRemoved(QVector<sp_track*>)), track, SLOT(onStarredListTracksRemoved(QVector<sp_track*>)));
             }
         }
     }
@@ -179,8 +185,7 @@ void QSpotifyToplist::populateResults(sp_toplistbrowse *tl)
     if (tl == m_sp_browseartists) {
         int c = sp_toplistbrowse_num_artists(tl);
         for (int i = 0; i < c; ++i) {
-            std::shared_ptr<QSpotifyArtist> artist = QSpotifyCacheManager::instance().getArtist(sp_toplistbrowse_artist(tl, i));
-            artist->init();
+            auto artist = QSpotifyCacheManager::instance().getArtist(sp_toplistbrowse_artist(tl, i));
             m_artistResults->appendRow(artist);
         }
     }
@@ -189,7 +194,7 @@ void QSpotifyToplist::populateResults(sp_toplistbrowse *tl)
         int c = sp_toplistbrowse_num_albums(tl);
         for (int i = 0; i < c; ++i) {
             sp_album *a = sp_toplistbrowse_album(tl, i);
-            std::shared_ptr<QSpotifyAlbum> album = QSpotifyCacheManager::instance().getAlbum(a);
+            auto album = QSpotifyCacheManager::instance().getAlbum(a);
             m_albumResults->appendRow(album);
         }
     }

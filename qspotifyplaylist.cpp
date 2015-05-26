@@ -328,7 +328,7 @@ bool QSpotifyPlaylist::updateData()
     return updated;
 }
 
-std::shared_ptr<QSpotifyTrack> QSpotifyPlaylist::addTrack(sp_track *track, int pos)
+QSpotifyTrack *QSpotifyPlaylist::addTrack(sp_track *track, int pos)
 {
     auto qtrack = QSpotifyCacheManager::instance().getTrack(track, this);
 
@@ -337,15 +337,15 @@ std::shared_ptr<QSpotifyTrack> QSpotifyPlaylist::addTrack(sp_track *track, int p
     else
         m_trackList->insertRow(pos, qtrack);
     m_tracksSet.insert(track);
-    connect(qtrack.get(), SIGNAL(trackDataChanged()), this, SIGNAL(playlistDataChanged()));
-    connect(qtrack.get(), SIGNAL(offlineStatusChanged()), this, SLOT(onTrackChanged()));
-    connect(qtrack.get(), SIGNAL(isAvailableChanged()), this, SLOT(onTrackChanged()));
+    connect(qtrack, SIGNAL(trackDataChanged()), this, SIGNAL(playlistDataChanged()));
+    connect(qtrack, SIGNAL(offlineStatusChanged()), this, SLOT(onTrackChanged()));
+    connect(qtrack, SIGNAL(isAvailableChanged()), this, SLOT(onTrackChanged()));
     if (m_type != Starred) {
-        connect(QSpotifySession::instance()->user()->starredList(), SIGNAL(tracksAdded(QVector<sp_track*>)), qtrack.get(), SLOT(onStarredListTracksAdded(QVector<sp_track*>)));
-        connect(QSpotifySession::instance()->user()->starredList(), SIGNAL(tracksRemoved(QVector<sp_track*>)), qtrack.get(), SLOT(onStarredListTracksRemoved(QVector<sp_track*>)));
+        connect(QSpotifySession::instance()->user()->starredList(), SIGNAL(tracksAdded(QVector<sp_track*>)), qtrack, SLOT(onStarredListTracksAdded(QVector<sp_track*>)));
+        connect(QSpotifySession::instance()->user()->starredList(), SIGNAL(tracksRemoved(QVector<sp_track*>)), qtrack, SLOT(onStarredListTracksRemoved(QVector<sp_track*>)));
     }
     if (m_type == Inbox) {
-        connect(qtrack.get(), SIGNAL(seenChanged()), this, SIGNAL(seenCountChanged()));
+        connect(qtrack, SIGNAL(seenChanged()), this, SIGNAL(seenCountChanged()));
     }
     qtrack->metadataUpdated();
     return qtrack;
@@ -423,8 +423,8 @@ bool QSpotifyPlaylist::event(QEvent *e)
                 continue;
             if (auto tr = m_trackList->takeRow(pos)) {
                 unregisterTrackType(tr);
-                disconnect(tr.get(), SIGNAL(offlineStatusChanged()), this, SLOT(onTrackChanged()));
-                disconnect(tr.get(), SIGNAL(isAvailableChanged()), this, SLOT(onTrackChanged()));
+                disconnect(tr, SIGNAL(offlineStatusChanged()), this, SLOT(onTrackChanged()));
+                disconnect(tr, SIGNAL(isAvailableChanged()), this, SLOT(onTrackChanged()));
                 tracksSignal.append(tr->m_sp_track);
                 m_tracksSet.remove(tr->m_sp_track);
 
@@ -447,17 +447,17 @@ bool QSpotifyPlaylist::event(QEvent *e)
         QSpotifyTracksMovedEvent *ev = static_cast<QSpotifyTracksMovedEvent *>(e);
         QVector<int> positions = ev->positions();
         int newpos = ev->newPosition();
-        QVector<std::shared_ptr<QSpotifyTrack> > tracks;
+        QVector<QSpotifyTrack *> tracks;
         for (int i = 0; i < positions.count(); ++i) {
             int pos = positions.at(i);
             if (pos < 0 || pos >= m_trackList->count())
                 continue;
             tracks.append(m_trackList->at(pos));
-            m_trackList->replace(pos, std::shared_ptr<QSpotifyTrack>());
+            m_trackList->replace(pos, nullptr);
         }
         for (int i = 0; i < tracks.count(); ++i)
             m_trackList->insertRow(newpos++, tracks.at(i));
-        m_trackList->removeAll(std::shared_ptr<QSpotifyTrack>());
+        m_trackList->removeAll(nullptr);
         postUpdateEvent();
         if (QSpotifySession::instance()->playQueue()->isCurrentTrackList(m_trackList))
             QSpotifySession::instance()->playQueue()->tracksUpdated();
@@ -501,7 +501,7 @@ void QSpotifyPlaylist::remove(QSpotifyTrack *track)
     if (!track)
         return;
 
-    int i = m_trackList->indexOf(track->shared_from_this());
+    int i = m_trackList->indexOf(track);
     if (i > -1)
         sp_playlist_remove_tracks(m_sp_playlist, &i, 1);
 }
@@ -620,7 +620,7 @@ int QSpotifyPlaylist::unseenCount() const
 
     int c = 0;
     for (int i = 0; i < m_trackList->count(); ++i) {
-        std::shared_ptr<QSpotifyTrack> t = m_trackList->at(i);
+        QSpotifyTrack *t = m_trackList->at(i);
         if (t->error() == QSpotifyTrack::Ok && !t->seen())
             ++c;
     }
@@ -632,14 +632,14 @@ void QSpotifyPlaylist::onTrackChanged()
     if (!sender())
         return;
 
-    std::shared_ptr<QSpotifyTrack> tr = (dynamic_cast<QSpotifyTrack *>(sender()))->shared_from_this();
+    QSpotifyTrack *tr = dynamic_cast<QSpotifyTrack *>(sender());
     if (!tr)
         return;
 
     registerTrackType(tr);
 }
 
-void QSpotifyPlaylist::registerTrackType(std::shared_ptr<QSpotifyTrack> t)
+void QSpotifyPlaylist::registerTrackType(QSpotifyTrack *t)
 {
     int oldCount = m_offlineTracks.count();
     if (t->offlineStatus() == QSpotifyTrack::Yes)
@@ -654,7 +654,7 @@ void QSpotifyPlaylist::registerTrackType(std::shared_ptr<QSpotifyTrack> t)
     }
 }
 
-void QSpotifyPlaylist::unregisterTrackType(std::shared_ptr<QSpotifyTrack> t)
+void QSpotifyPlaylist::unregisterTrackType(QSpotifyTrack *t)
 {
     m_offlineTracks.remove(t);
     m_availableTracks.remove(t);

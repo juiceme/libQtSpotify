@@ -41,11 +41,13 @@
 
 #include "qspotifyobject.h"
 #include "qspotifysession.h"
+#include "qspotifycachemanager.h"
 
 QSpotifyObject::QSpotifyObject(bool autoConnectToSessionSignal)
   : QObject(0)
   , m_isLoaded(false)
   , m_autoConnect(autoConnectToSessionSignal)
+  , m_refCount(1)
 {
 }
 
@@ -54,6 +56,23 @@ void QSpotifyObject::init()
     if (m_autoConnect)
         connect(QSpotifySession::instance(), SIGNAL(metadataUpdated()), this, SLOT(metadataUpdated()));
     metadataUpdated();
+}
+
+void QSpotifyObject::destroy()
+{
+    deleteLater();
+}
+
+void QSpotifyObject::release()
+{
+    --m_refCount;
+    Q_ASSERT(m_refCount >= 0);
+    if (m_refCount == 0) {
+        if (m_autoConnect)
+            disconnect(QSpotifySession::instance(), SIGNAL(metadataUpdated()), this, SLOT(metadataUpdated()));
+        QSpotifyCacheManager::instance().removeObject(this);
+        destroy();
+    }
 }
 
 void QSpotifyObject::metadataUpdated()

@@ -50,7 +50,7 @@ class QSpotifyArtistBrowse;
 struct sp_artist;
 
 class QSpotifyArtist :
-        public QSpotifyObject, public std::enable_shared_from_this<QSpotifyArtist>
+        public QSpotifyObject
 {
     Q_OBJECT
     Q_PROPERTY(QString name READ name NOTIFY artistDataChanged)

@@ -97,16 +97,16 @@ public:
         return m_currentIndex;
     }
 
-    int indexOf(const std::shared_ptr<QSpotifyTrack> ptr) const
+    int indexOf(QSpotifyTrack *ptr) const
     { return m_dataList.indexOf(ptr); }
 
-    bool contains(const std::shared_ptr<QSpotifyTrack> ptr) const
+    bool contains(QSpotifyTrack *ptr) const
     { return m_dataList.contains(ptr); }
 
-    void replace(int i, const std::shared_ptr<QSpotifyTrack> ptr)
+    void replace(int i, QSpotifyTrack *ptr)
     { m_dataList.replace(i, ptr); }
 
-    int removeAll(const std::shared_ptr<QSpotifyTrack> ptr);
+    int removeAll(QSpotifyTrack *ptr);
 
 
 private Q_SLOTS:
@@ -126,7 +126,7 @@ private:
     bool m_reverse;
 
     int m_currentIndex;
-    std::shared_ptr<QSpotifyTrack> m_currentTrack;
+    QSpotifyTrack *m_currentTrack;
 
     bool m_shuffle;
     QList<int> m_shuffleList;

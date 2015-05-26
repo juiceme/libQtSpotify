@@ -49,7 +49,7 @@
 class QSpotifyPlaylist;
 struct sp_playlist;
 
-class QSpotifyPlaylistSearchEntry : public QSpotifyObject, public std::enable_shared_from_this<QSpotifyPlaylistSearchEntry>
+class QSpotifyPlaylistSearchEntry : public QSpotifyObject
 {
     Q_OBJECT
     Q_PROPERTY(QString name READ name NOTIFY nameChanged)

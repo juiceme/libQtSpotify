@@ -62,7 +62,7 @@ public:
     // if we want to play a track which is playing but we want to set
     // a different tracklist.
     void playFromDifferentTrackList(QSpotifyTrackList *list);
-    void enqueueTrack(std::shared_ptr<QSpotifyTrack> track);
+    void enqueueTrack(QSpotifyTrack *track);
     void enqueueTracks(QSpotifyTrackList *tracks, bool reverse = false);
     Q_INVOKABLE void selectTrack(int index);
 
@@ -94,8 +94,8 @@ private:
     void clearTrackList();
 
     QSpotifyTrackList *m_implicitTracks;
-    QQueue<std::shared_ptr<QSpotifyTrack> > m_explicitTracks;
-    std::shared_ptr<QSpotifyTrack> m_currentExplicitTrack;
+    QQueue<QSpotifyTrack *> m_explicitTracks;
+    QSpotifyTrack *m_currentExplicitTrack;
 
     // The tracklist from which the current tracks are from
     QSpotifyTrackList* m_sourceTrackList;

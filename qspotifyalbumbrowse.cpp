@@ -95,7 +95,7 @@ bool QSpotifyAlbumBrowse::event(QEvent *e)
     return QObject::event(e);
 }
 
-void QSpotifyAlbumBrowse::setAlbum(std::shared_ptr<QSpotifyAlbum> album)
+void QSpotifyAlbumBrowse::setAlbum(QSpotifyAlbum *album)
 {
     if (m_album == album)
         return;
@@ -147,9 +147,9 @@ void QSpotifyAlbumBrowse::processData()
                 auto qtrack = QSpotifyCacheManager::instance().getTrack(track);
 
                 m_albumTracks->appendRow(qtrack);
-                connect(qtrack.get(), SIGNAL(isStarredChanged()), this, SIGNAL(isStarredChanged()));
-                connect(QSpotifySession::instance()->user()->starredList(), SIGNAL(tracksAdded(QVector<sp_track*>)), qtrack.get(), SLOT(onStarredListTracksAdded(QVector<sp_track*>)));
-                connect(QSpotifySession::instance()->user()->starredList(), SIGNAL(tracksRemoved(QVector<sp_track*>)), qtrack.get(), SLOT(onStarredListTracksRemoved(QVector<sp_track*>)));
+                connect(qtrack, SIGNAL(isStarredChanged()), this, SIGNAL(isStarredChanged()));
+                connect(QSpotifySession::instance()->user()->starredList(), SIGNAL(tracksAdded(QVector<sp_track*>)), qtrack, SLOT(onStarredListTracksAdded(QVector<sp_track*>)));
+                connect(QSpotifySession::instance()->user()->starredList(), SIGNAL(tracksRemoved(QVector<sp_track*>)), qtrack, SLOT(onStarredListTracksRemoved(QVector<sp_track*>)));
                 if (qtrack->artists() != m_album->artist())
                     m_hasMultipleArtists = true;
                 if (i == 0) {

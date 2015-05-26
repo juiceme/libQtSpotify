@@ -75,7 +75,7 @@ Q_SIGNALS:
     void busyChanged();
 
 private:
-    void clear();
+    void clear(bool emitResults = true);
     void populateResults(sp_toplistbrowse *tl);
     void setBusy(bool busy);
 

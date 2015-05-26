@@ -5,6 +5,5 @@
 
 #include "qspotifytrack.h"
 
-uint qHash(const std::shared_ptr<QSpotifyTrack> &v);
 
 #endif // SHARED_PTR_H

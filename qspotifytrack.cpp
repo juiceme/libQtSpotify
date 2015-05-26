@@ -52,15 +52,11 @@
 #include "qspotifyuser.h"
 #include "qspotifycachemanager.h"
 
-uint qHash(const std::shared_ptr<QSpotifyTrack> &v) {
-    std::hash<std::shared_ptr<QSpotifyTrack> > hash;
-    return static_cast<uint>(hash(v));
-}
-
 QSpotifyTrack::QSpotifyTrack(sp_track *track, QSpotifyPlaylist *playlist)
     : QSpotifyObject(true)
     , m_playlist(playlist)
     , m_album(nullptr)
+    , m_artist(nullptr)
     , m_discNumber(0)
     , m_duration(0)
     , m_discIndex(0)
@@ -84,6 +80,8 @@ QSpotifyTrack::QSpotifyTrack(sp_track *track, QSpotifyPlaylist *playlist)
 QSpotifyTrack::~QSpotifyTrack()
 {
     stop();
+    if (m_album) m_album->release();
+    if (m_artist) m_artist->release();
     if(m_sp_track)
         sp_track_release(m_sp_track);
 }
@@ -119,7 +117,7 @@ bool QSpotifyTrack::updateData()
         int popularity = sp_track_popularity(m_sp_track);
         OfflineStatus offlineSt = OfflineStatus(sp_track_offline_get_status(m_sp_track));
         if (m_playlist && m_playlist->type() == QSpotifyPlaylist::Inbox) {
-            int tindex = m_playlist->m_trackList->indexOf(shared_from_this());
+            int tindex = m_playlist->m_trackList->indexOf(this);
 
             if (tindex >= 0 && tindex < sp_playlist_num_tracks(m_playlist->m_sp_playlist)) {
                 bool seen = sp_playlist_track_seen(m_playlist->m_sp_playlist, tindex);
@@ -179,11 +177,13 @@ bool QSpotifyTrack::updateData()
             for (int i = 0; i < count; ++i) {
                 if (auto sartist = sp_track_artist(m_sp_track, i)) {
                     if (auto artist = QSpotifyCacheManager::instance().getArtist(sartist)) {
-                        if(0 == i)
-                            m_artist = artist;
                         m_artistsString += artist->name();
                         if (i != count - 1)
                             m_artistsString += QLatin1String(", ");
+                        if(0 == i)
+                            m_artist = artist;
+                        else
+                            artist->release();
                     }
                 }
             }
@@ -258,7 +258,7 @@ void QSpotifyTrack::seek(int offset)
 
 void QSpotifyTrack::enqueue()
 {
-    QSpotifySession::instance()->enqueue(shared_from_this());
+    QSpotifySession::instance()->enqueue(this);
 }
 
 void QSpotifyTrack::removeFromPlaylist()
@@ -269,7 +269,7 @@ void QSpotifyTrack::removeFromPlaylist()
 
 void QSpotifyTrack::onSessionCurrentTrackChanged()
 {
-    bool newValue = QSpotifySession::instance()->currentTrackShared() == shared_from_this();
+    bool newValue = QSpotifySession::instance()->currentTrack() == this;
     if (m_isCurrentPlayingTrack != newValue) {
         m_isCurrentPlayingTrack = newValue;
         emit isCurrentPlayingTrackChanged();
@@ -316,7 +316,7 @@ void QSpotifyTrack::setSeen(bool s)
     if (!m_playlist)
         return;
 
-    sp_playlist_track_set_seen(m_playlist->m_sp_playlist, m_playlist->m_trackList->indexOf(shared_from_this()), s);
+    sp_playlist_track_set_seen(m_playlist->m_sp_playlist, m_playlist->m_trackList->indexOf(this), s);
 }
 
 bool QSpotifyTrack::isAvailableOffline() const

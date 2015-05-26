@@ -71,7 +71,7 @@ bool QSpotifyArtist::isLoaded()
 QSpotifyArtistBrowse *QSpotifyArtist::browse()
 {
     auto browse = new QSpotifyArtistBrowse();
-    browse->setArtist(shared_from_this());
+    browse->setArtist(this);
     return browse;
 }
 

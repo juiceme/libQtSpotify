@@ -1,8 +1,6 @@
 #ifndef LISTMODELBASE_H
 #define LISTMODELBASE_H
 
-#include <memory>
-
 #include <QtCore/QAbstractListModel>
 #include <QtCore/QList>
 #include <QtCore/QVariant>
@@ -24,22 +22,22 @@ public:
     explicit ListModelBase(QObject *parent=nullptr);
     virtual ~ListModelBase();
     virtual int rowCount(const QModelIndex &parent = QModelIndex()) const;
-    void appendRow(std::shared_ptr<ItemType>  item);
-    void appendRows(const QList<std::shared_ptr<ItemType> > &items);
-    void insertRow(int row, std::shared_ptr<ItemType> item);
+    void appendRow(ItemType * item);
+    void appendRows(const QList<ItemType *> &items);
+    void insertRow(int row, ItemType *item);
     bool removeRows(int row, int count, const QModelIndex &parent = QModelIndex());
-    void replaceData(const QList<std::shared_ptr<ItemType> > &newData);
-    std::shared_ptr<ItemType> takeRow(int row);
-    std::shared_ptr<ItemType> find(const QString &id) const;
-    QModelIndex indexFromItem(const std::shared_ptr<ItemType> item) const;
+    void replaceData(const QList<ItemType *> &newData);
+    ItemType *takeRow(int row);
+    ItemType *find(const QString &id) const;
+    QModelIndex indexFromItem(const ItemType *item) const;
     void clear();
 
     bool isEmpty() const { return m_dataList.isEmpty(); }
-    std::shared_ptr<ItemType> at(int index) const { return m_dataList.at(index); }
+    ItemType *at(int index) const { return m_dataList.at(index); }
     int count() const { return m_dataList.count(); }
 
 protected:
-    QList<std::shared_ptr<ItemType> > m_dataList;
+    QList<ItemType *> m_dataList;
 
 private slots:
     void itemDataChanged();

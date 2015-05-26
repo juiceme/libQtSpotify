@@ -92,7 +92,7 @@ QSpotifyArtistBrowse::~QSpotifyArtistBrowse()
     clearData();
 }
 
-void QSpotifyArtistBrowse::setArtist(std::shared_ptr<QSpotifyArtist> artist)
+void QSpotifyArtistBrowse::setArtist(QSpotifyArtist *artist)
 {
     if (m_artist == artist)
         return;
@@ -172,12 +172,12 @@ void QSpotifyArtistBrowse::processData()
         }
 
         int c = qMin(80, sp_artistbrowse_num_albums(m_sp_artistbrowse));
-        QList<std::shared_ptr<QSpotifyAlbum> > albums, singles, compilations, appearsOn;
+        QList<QSpotifyAlbum *> albums, singles, compilations, appearsOn;
         for (int i = 0; i < c; ++i) {
             sp_album *album = sp_artistbrowse_album(m_sp_artistbrowse, i);
             if (!sp_album_is_available(album))
                 continue;
-            std::shared_ptr<QSpotifyAlbum> qalbum = QSpotifyCacheManager::instance().getAlbum(album);
+            auto qalbum = QSpotifyCacheManager::instance().getAlbum(album);
 
             if ((qalbum->type() == QSpotifyAlbum::Album || qalbum->type() == QSpotifyAlbum::Unknown) && qalbum->artist() == m_artist->name()) {
                 qalbum->setSectionType("Albums");
@@ -201,7 +201,7 @@ void QSpotifyArtistBrowse::processData()
 
         c = sp_artistbrowse_num_similar_artists(m_sp_artistbrowse);
         for (int i = 0; i < c; ++i) {
-            std::shared_ptr<QSpotifyArtist> artist = QSpotifyCacheManager::instance().getArtist(sp_artistbrowse_similar_artist(m_sp_artistbrowse, i));
+            auto artist = QSpotifyCacheManager::instance().getArtist(sp_artistbrowse_similar_artist(m_sp_artistbrowse, i));
             m_similarArtists->appendRow(artist);
         }
 
@@ -219,7 +219,7 @@ void QSpotifyArtistBrowse::processTopHits()
     m_topTracks->clear();
     int c = m_topHitsSearch->trackResults()->count();
     for (int i = 0; i < c && m_topTracks->count() < 10; ++i) {
-        std::shared_ptr<QSpotifyTrack> t = m_topHitsSearch->trackResults()->at(i);
+        auto t = m_topHitsSearch->trackResults()->at(i);
         QStringList artists = t->artists().split(", ");
         if (artists.contains(m_artist->name())) {
             m_topTracks->appendRow(t);

@@ -120,7 +120,7 @@ QVariant QSpotifyTrackList::data(const QModelIndex &index, int role) const
     case OfflineStatusRole:
         return QVariant();
     case RawPtrRole:
-        return QVariant::fromValue<QSpotifyTrack *>(track.get());
+        return QVariant::fromValue<QSpotifyTrack *>(track);
     default:
         return QVariant();
     }
@@ -150,7 +150,8 @@ void QSpotifyTrackList::playTrack(int index)
 bool QSpotifyTrackList::playTrackAtIndex(int i)
 {
     if (i < 0 || i >= count()) {
-        m_currentTrack.reset();
+        m_currentTrack->release();
+        m_currentTrack = nullptr;
         m_currentIndex = 0;
         emit currentPlayIndexChanged();
         return false;
@@ -169,7 +170,8 @@ bool QSpotifyTrackList::next()
 {
     if (m_shuffle) {
         if (m_shuffleIndex + 1 >= m_shuffleList.count()) {
-            m_currentTrack.reset();
+            m_currentTrack->release();
+            m_currentTrack = nullptr;
             return false;
         }
         return playTrackAtIndex(m_shuffleList.at(m_shuffleIndex + 1));
@@ -187,7 +189,8 @@ bool QSpotifyTrackList::previous()
 {
     if (m_shuffle) {
         if (m_shuffleIndex - 1 < 0) {
-            m_currentTrack.reset();
+            m_currentTrack->release();
+            m_currentTrack = nullptr;
             return false;
         }
         return playTrackAtIndex(m_shuffleList.at(m_shuffleIndex - 1));
@@ -220,7 +223,7 @@ void QSpotifyTrackList::playCurrentTrack()
     if (m_currentTrack->isLoaded())
         onTrackReady();
     else
-        connect(m_currentTrack.get(), SIGNAL(isLoadedChanged()), this, SLOT(onTrackReady()));
+        connect(m_currentTrack, SIGNAL(isLoadedChanged()), this, SLOT(onTrackReady()));
 }
 
 void QSpotifyTrackList::onTrackReady()
@@ -257,7 +260,7 @@ void QSpotifyTrackList::setShuffle(bool s)
     }
 }
 
-int QSpotifyTrackList::removeAll(const std::shared_ptr<QSpotifyTrack> ptr)
+int QSpotifyTrackList::removeAll(QSpotifyTrack *ptr)
 {
     int count = 0;
     beginResetModel();

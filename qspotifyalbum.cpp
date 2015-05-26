@@ -75,7 +75,7 @@ bool QSpotifyAlbum::isLoaded()
 QSpotifyAlbumBrowse *QSpotifyAlbum::browse()
 {
     auto browse = new QSpotifyAlbumBrowse();
-    browse->setAlbum(shared_from_this());
+    browse->setAlbum(this);
     return browse;
 }
 

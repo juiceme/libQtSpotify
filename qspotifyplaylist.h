@@ -168,9 +168,9 @@ private Q_SLOTS:
     void onTrackChanged();
 
 private:
-    std::shared_ptr<QSpotifyTrack> addTrack(sp_track *track, int pos = -1);
-    void registerTrackType(std::shared_ptr<QSpotifyTrack> t);
-    void unregisterTrackType(std::shared_ptr<QSpotifyTrack> t);
+    QSpotifyTrack *addTrack(sp_track *track, int pos = -1);
+    void registerTrackType(QSpotifyTrack *t);
+    void unregisterTrackType(QSpotifyTrack *t);
 
     void postUpdateEvent();
 
@@ -192,8 +192,8 @@ private:
     QString m_ImageId;
     QString m_hashKey;
 
-    QSet<std::shared_ptr<QSpotifyTrack> > m_offlineTracks;
-    QSet<std::shared_ptr<QSpotifyTrack> > m_availableTracks;
+    QSet<QSpotifyTrack *> m_offlineTracks;
+    QSet<QSpotifyTrack *> m_availableTracks;
 
     QList<QObject *> m_availablePlaylists;
     QList<QObject *> m_unavailablePlaylists;

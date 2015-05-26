@@ -546,7 +546,7 @@ void QSpotifySession::processSpotifyEvents()
     int nextTimeout = 0;
 
     if (!m_aboutToQuit)
-        QSpotifyCacheManager::instance().clean();
+        QSpotifyCacheManager::instance().cacheInfo();
 
     do {
         assert(isValid());
@@ -769,7 +769,7 @@ void QSpotifySession::setVolumeNormalize(bool normalize)
     emit volumeNormalizeChanged();
 }
 
-void QSpotifySession::play(std::shared_ptr<QSpotifyTrack> track, bool restart)
+void QSpotifySession::play(QSpotifyTrack *track, bool restart)
 {
     qDebug() << "QSpotifySession::play";
     if (track->error() != QSpotifyTrack::Ok || !track->isAvailable() || (m_currentTrack == track && !restart))
@@ -784,7 +784,8 @@ void QSpotifySession::play(std::shared_ptr<QSpotifyTrack> track, bool restart)
         }
         sp_session_player_unload(m_sp_session);
         m_isPlaying = false;
-        m_currentTrack.reset();
+        m_currentTrack->release();
+        m_currentTrack = nullptr;
         m_currentTrackPosition = 0;
         m_currentTrackPlayedDuration = 0;
         // Only discard buffers if the track change was initialized manually
@@ -808,6 +809,7 @@ void QSpotifySession::play(std::shared_ptr<QSpotifyTrack> track, bool restart)
         return;
     }
     m_currentTrack = track;
+    m_currentTrack->addRef();
     m_currentTrackPosition = 0;
     m_currentTrackPlayedDuration = 0;
     emit currentTrackChanged();
@@ -858,7 +860,8 @@ void QSpotifySession::stop(bool dontEmitSignals)
 
     sp_session_player_unload(m_sp_session);
     m_isPlaying = false;
-    m_currentTrack.reset();
+    m_currentTrack->release();
+    m_currentTrack = nullptr;
     m_currentTrackPosition = 0;
     m_currentTrackPlayedDuration = 0;
 
@@ -898,7 +901,7 @@ void QSpotifySession::playPrevious()
     m_playQueue->playPrevious();
 }
 
-void QSpotifySession::enqueue(std::shared_ptr<QSpotifyTrack> track)
+void QSpotifySession::enqueue(QSpotifyTrack *track)
 {
     qDebug() << "QSpotifySession::enqieue";
     m_playQueue->enqueueTrack(track);

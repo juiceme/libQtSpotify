@@ -61,6 +61,11 @@ public:
 
     virtual bool isLoaded() = 0;
 
+    virtual void destroy();
+
+    void addRef() { ++m_refCount; }
+    void release();
+
 public Q_SLOTS:
     void metadataUpdated();
 
@@ -74,6 +79,9 @@ protected:
 private:
     bool m_isLoaded;
     bool m_autoConnect;
+    int m_refCount;
+
+    QSpotifyObject(const QSpotifyObject&) = delete;
 };
 
 #endif // QSPOTIFYOBJECT_H

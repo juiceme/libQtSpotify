@@ -65,8 +65,8 @@ public:
     QSpotifyAlbumBrowse(QObject *parent = 0);
     ~QSpotifyAlbumBrowse();
 
-    std::shared_ptr<QSpotifyAlbum>  album() const { return m_album; }
-    void setAlbum(std::shared_ptr<QSpotifyAlbum> album);
+    QSpotifyAlbum *album() const { return m_album; }
+    void setAlbum(QSpotifyAlbum *album);
 
     Q_INVOKABLE QSpotifyTrackList *tracks() const { return m_albumTracks; }
     int trackCount() const;
@@ -98,7 +98,7 @@ private:
 
     sp_albumbrowse *m_sp_albumbrowse;
 
-    std::shared_ptr<QSpotifyAlbum> m_album;
+    QSpotifyAlbum *m_album;
     QSpotifyTrackList *m_albumTracks;
     QSpotifyArtist *m_artistObject;
 

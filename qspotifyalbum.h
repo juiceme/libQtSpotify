@@ -51,7 +51,7 @@ class QSpotifyArtist;
 struct sp_album;
 struct sp_artist;
 
-class QSpotifyAlbum : public QSpotifyObject, public std::enable_shared_from_this<QSpotifyAlbum>
+class QSpotifyAlbum : public QSpotifyObject
 {
     Q_OBJECT
 

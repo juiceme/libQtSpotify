@@ -1,10 +1,7 @@
 #ifndef QSPOTIFYCACHEMANAGER_H
 #define QSPOTIFYCACHEMANAGER_H
 
-#include <memory>
-
-class QMutex;
-class QThread;
+#include <QtCore/QHash>
 
 class QSpotifyTrack;
 class QSpotifyPlaylist;
@@ -15,7 +12,8 @@ struct sp_track;
 struct sp_artist;
 struct sp_album;
 
-class CleanerWorker;
+
+class QSpotifyObject;
 
 class QSpotifyCacheManager
 {
@@ -26,30 +24,23 @@ public:
         return inst;
     }
 
-    std::shared_ptr<QSpotifyTrack> getTrack(sp_track *t, QSpotifyPlaylist *playlist = nullptr);
-    std::shared_ptr<QSpotifyArtist> getArtist(sp_artist *a);
-    std::shared_ptr<QSpotifyAlbum> getAlbum(sp_album *a);
+    void removeObject(QSpotifyObject *obj);
+    QSpotifyTrack *getTrack(sp_track *t, QSpotifyPlaylist *playlist = nullptr);
+    QSpotifyArtist *getArtist(sp_artist *a);
+    QSpotifyAlbum *getAlbum(sp_album *a);
 
-    void clean();
+    void cacheInfo();
 
     void clearTables();
 
-
 private:
-    QSpotifyCacheManager();
-    ~QSpotifyCacheManager();
-
-    template<class T> void cleanTable(T &hash, QMutex *mutex);
-    void cleanUp();
-
     int numTracks();
     int numAlbums();
     int numArtists();
 
-    QThread *m_cleanerThread;
-
-    friend class CleanerWorker;
-    CleanerWorker *m_cleanerWorker;
+    QHash<sp_track *, QSpotifyTrack *> m_tracks;
+    QHash<sp_artist *, QSpotifyArtist *> m_artists;
+    QHash<sp_album *, QSpotifyAlbum *> m_albums;
 };
 
 #endif // QSPOTIFYCACHEMANAGER_H
