@@ -76,6 +76,7 @@
 #include "mpris/mprismediaplayerplayer.h"
 
 static QSpotifyAudioThreadWorker *g_audioWorker;
+static int lastFrameSize = 0;
 
 QSpotifySession *QSpotifySession::m_instance = nullptr;
 
@@ -133,6 +134,7 @@ static int SP_CALLCONV callback_music_delivery(sp_session *, const sp_audioforma
                                     new QSpotifyStreamingStartedEvent(format->channels, format->sample_rate));
     }
 
+    lastFrameSize = (sizeof(int16_t) * format->channels);
     int availableFrames = (g_buffer.freeBytes()) / (sizeof(int16_t) * format->channels);
     int writtenFrames = qMin(num_frames, availableFrames);
 
@@ -145,6 +147,23 @@ static int SP_CALLCONV callback_music_delivery(sp_session *, const sp_audioforma
 
     g_mutex.unlock();
     return writtenFrames;
+}
+
+static void SP_CALLCONV callback_get_audio_buffer_stats(sp_session *, sp_audio_buffer_stats *stats)
+{
+    if (stats) {
+        stats->stutter = 0;
+        QMutexLocker locker(&g_mutex);
+        if (lastFrameSize)
+            stats->samples = g_buffer.filledBytes() / lastFrameSize;
+        else
+            stats->samples = 0;
+    }
+}
+
+static void SP_CALLCONV callback_stop_playback(sp_session *)
+{
+    qWarning() << "!!!STOP PLAYBACK!!!";
 }
 
 static void SP_CALLCONV callback_end_of_track(sp_session *)
@@ -257,6 +276,8 @@ void QSpotifySession::init()
     m_sp_callbacks.offline_error = callback_offline_error;
     m_sp_callbacks.connectionstate_updated = callback_connectionstate_updated;
     m_sp_callbacks.scrobble_error = callback_scrobble_error;
+    m_sp_callbacks.get_audio_buffer_stats = callback_get_audio_buffer_stats;
+    m_sp_callbacks.stop_playback = callback_stop_playback;
 
     QString dpString = settings.value("dataPath").toString();
     dataPath = (char *) calloc(strlen(dpString.toLatin1()) + 1, sizeof(char));
@@ -1100,9 +1121,6 @@ void QSpotifySession::setOfflineMode(bool on, bool forced)
         return;
 
     m_offlineMode = on;
-
-    if (m_offlineMode && m_currentTrack && !m_currentTrack->isAvailableOffline())
-        stop();
 
     if (!forced) {
         QSettings s;
