@@ -236,6 +236,7 @@ QSpotifySession::QSpotifySession()
     , m_repeatOne(false)
     , m_volumeNormalize(true)
     , m_trackChangedAutomatically(false)
+    , m_showOfflineSwitch(true)
 {
     QCoreApplication::setOrganizationName("CuteSpot");
     QCoreApplication::setOrganizationDomain("com.mikeasoft.cutespot");
@@ -344,6 +345,9 @@ void QSpotifySession::init()
 
     bool volumeNormalizeSet = settings.value("volumeNormalize", true).toBool();
     setVolumeNormalize(volumeNormalizeSet);
+
+    bool showOfflineSwitch = settings.value("showOfflineSwitch", true).toBool();
+    setShowOfflineSwitch(showOfflineSwitch);
 
     m_lfmLoggedIn = false;
 
@@ -1154,6 +1158,19 @@ void QSpotifySession::setPrivateSession(bool on)
         return;
 
     sp_session_set_private_session(m_sp_session, on);
+}
+
+void QSpotifySession::setShowOfflineSwitch(bool on)
+{
+    if (on == m_showOfflineSwitch)
+        return;
+
+    m_showOfflineSwitch = on;
+
+    QSettings settings;
+    settings.setValue("showOfflineSwitch", m_showOfflineSwitch);
+
+    emit showOfflineSwitchChanged();
 }
 
 void QSpotifySession::setSyncOverMobile(bool s)

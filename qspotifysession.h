@@ -81,6 +81,7 @@ class QSpotifySession : public QObject
     Q_PROPERTY(bool scrobble READ scrobble WRITE setScrobble NOTIFY scrobbleChanged)
     Q_PROPERTY(bool volumeNormalize READ volumeNormalize WRITE setVolumeNormalize NOTIFY volumeNormalizeChanged)
     Q_PROPERTY(bool privateSession READ privateSession)
+    Q_PROPERTY(bool showOfflineSwitch READ showOfflineSwitch WRITE setShowOfflineSwitch NOTIFY showOfflineSwitchChanged)
     Q_ENUMS(ConnectionStatus)
     Q_ENUMS(ConnectionError)
     Q_ENUMS(OfflineError)
@@ -195,6 +196,9 @@ public:
     void setScrobble(bool scrobble);
     Q_INVOKABLE void setPrivateSession(bool on);
 
+    bool showOfflineSwitch() const { return m_showOfflineSwitch; }
+    void setShowOfflineSwitch(bool on);
+
     sp_session *spsession() const { return m_sp_session; }
 
     QSpotifyPlayQueue *playQueue() const { return m_playQueue; }
@@ -241,6 +245,7 @@ Q_SIGNALS:
     void lfmLoginError();
     void volumeNormalizeChanged();
     void readyToQuit();
+    void showOfflineSwitchChanged();
 
 protected:
     bool event(QEvent *);
@@ -311,6 +316,7 @@ private:
     bool m_lfmLoggedIn;
     bool m_scrobble;
     bool m_trackChangedAutomatically;
+    bool m_showOfflineSwitch;
 
     QThread *m_audioThread;
 
