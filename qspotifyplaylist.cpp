@@ -199,7 +199,7 @@ QSpotifyPlaylist::~QSpotifyPlaylist()
     auto ptr = m_imagePointers.take(m_hashKey);
     if(ptr) delete[] ptr;
     if (m_sp_playlist) {
-        sp_playlist_remove_callbacks(m_sp_playlist, m_callbacks, nullptr);
+        sp_playlist_remove_callbacks(m_sp_playlist, m_callbacks, this);
         sp_playlist_release(m_sp_playlist);
     }
     delete m_callbacks;

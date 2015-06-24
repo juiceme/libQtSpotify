@@ -71,14 +71,17 @@ private:
 class QSpotifyPlaylistRemovedEvent : public QEvent
 {
 public:
-    QSpotifyPlaylistRemovedEvent(int position)
+    QSpotifyPlaylistRemovedEvent(sp_playlist *playlist, int position)
         : QEvent(Type(User + 2))
+        , m_playlist(playlist)
         , m_position(position)
     { }
 
+    sp_playlist *playlist() const { return m_playlist; }
     int position() const { return m_position; }
 
 private:
+    sp_playlist *m_playlist;
     int m_position;
 };
 
@@ -109,9 +112,9 @@ static void callback_playlist_added(sp_playlistcontainer *, sp_playlist *playlis
     QCoreApplication::postEvent(static_cast<QSpotifyPlaylistContainer *>(objectPtr), new QSpotifyPlaylistAddedEvent(playlist, position));
 }
 
-static void callback_playlist_removed(sp_playlistcontainer *, sp_playlist *, int position, void *objectPtr)
+static void callback_playlist_removed(sp_playlistcontainer *, sp_playlist *playlist, int position, void *objectPtr)
 {
-    QCoreApplication::postEvent(static_cast<QSpotifyPlaylistContainer *>(objectPtr), new QSpotifyPlaylistRemovedEvent(position));
+    QCoreApplication::postEvent(static_cast<QSpotifyPlaylistContainer *>(objectPtr), new QSpotifyPlaylistRemovedEvent(playlist, position));
 }
 
 static void callback_playlist_moved(sp_playlistcontainer *, sp_playlist *, int position, int new_position, void *objectPtr)
@@ -138,7 +141,7 @@ QSpotifyPlaylistContainer::QSpotifyPlaylistContainer(sp_playlistcontainer *conta
 QSpotifyPlaylistContainer::~QSpotifyPlaylistContainer()
 {
     if (m_container) {
-        sp_playlistcontainer_remove_callbacks(m_container, m_callbacks, nullptr);
+        sp_playlistcontainer_remove_callbacks(m_container, m_callbacks, this);
         sp_playlistcontainer_release(m_container);
     }
     qDeleteAll(m_playlists);
@@ -248,7 +251,6 @@ bool QSpotifyPlaylistContainer::event(QEvent *e)
         // PlaylistAdded event
         QSpotifyPlaylistAddedEvent *ev = static_cast<QSpotifyPlaylistAddedEvent *>(e);
         addPlaylist(ev->playlist(), ev->position());
-        emit dataChanged();
         postUpdateEvent();
         e->accept();
         return true;
@@ -257,12 +259,11 @@ bool QSpotifyPlaylistContainer::event(QEvent *e)
         qDebug() << "Playlist removed event";
         QSpotifyPlaylistRemovedEvent *ev = static_cast<QSpotifyPlaylistRemovedEvent *>(e);
         int i = ev->position();
-        if (i >= 0 && i < m_playlists.count()) {
+        if (i >= 0 && i < m_playlists.count() && m_playlists.at(i)->m_sp_playlist == ev->playlist()) {
             QSpotifyPlaylist *pl = m_playlists.takeAt(i);
             pl->deleteLater();
-            emit dataChanged();
+            postUpdateEvent();
         }
-        postUpdateEvent();
         e->accept();
         return true;
     } else if (e->type() == QEvent::User + 3) {
@@ -273,9 +274,8 @@ bool QSpotifyPlaylistContainer::event(QEvent *e)
         if (i >= 0 && i < m_playlists.count()) {
             QSpotifyPlaylist *pl = m_playlists.takeAt(i);
             m_playlists.insert(newpos > i ? newpos - 1 : newpos, pl);
-            emit dataChanged();
+            postUpdateEvent();
         }
-        postUpdateEvent();
         e->accept();
         return true;
     } else if (e->type() == QEvent::User + 4) {
