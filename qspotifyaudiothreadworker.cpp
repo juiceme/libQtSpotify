@@ -59,7 +59,6 @@ bool QSpotifyAudioThreadWorker::event(QEvent *e)
         killTimer(m_audioTimerID);
         g_buffer.close();
         if (m_audioOutput) {
-            m_audioOutput->suspend();
             m_audioOutput->stop();
             m_audioOutput->deleteLater();
             m_audioOutput = nullptr;
@@ -71,17 +70,9 @@ bool QSpotifyAudioThreadWorker::event(QEvent *e)
         QMutexLocker lock(&g_mutex);
         if (m_audioOutput) {
             killTimer(m_audioTimerID);
-            m_audioOutput->suspend();
-            m_audioOutput->stop();
-            g_buffer.close();
-            g_buffer.open();
             m_audioOutput->reset();
-            m_iodevice = m_audioOutput->start();
-            m_audioOutput->suspend();
-            m_audioTimerID = startTimer(AUDIOSTREAM_UPDATE_INTERVAL);
-            m_timeCounter = 0;
-            m_previousElapsedTime = 0;
-            m_audioOutput->resume();
+            g_buffer.reset();
+            startAudioOutput();
         }
         e->accept();
         return true;
@@ -122,12 +113,7 @@ void QSpotifyAudioThreadWorker::startStreaming(int channels, int sampleRate)
         connect(m_audioOutput, SIGNAL(stateChanged(QAudio::State)), QSpotifySession::instance(), SLOT(audioStateChange(QAudio::State)));
         m_audioOutput->setBufferSize(BUF_SIZE);
 
-        m_iodevice = m_audioOutput->start();
-        m_audioOutput->suspend();
-        m_audioTimerID = startTimer(AUDIOSTREAM_UPDATE_INTERVAL);
-        m_timeCounter = 0;
-        m_previousElapsedTime = 0;
-        m_audioOutput->resume();
+        startAudioOutput();
     }
 }
 
@@ -152,4 +138,12 @@ void QSpotifyAudioThreadWorker::updateAudioBuffer()
         QCoreApplication::postEvent(QSpotifySession::instance(), new QSpotifyTrackProgressEvent(elapsedTime - m_previousElapsedTime));
         m_previousElapsedTime = elapsedTime;
     }
+}
+
+void QSpotifyAudioThreadWorker::startAudioOutput()
+{
+    m_timeCounter = 0;
+    m_previousElapsedTime = 0;
+    m_iodevice = m_audioOutput->start();
+    m_audioTimerID = startTimer(AUDIOSTREAM_UPDATE_INTERVAL);
 }

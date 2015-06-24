@@ -11,6 +11,10 @@ public:
     QSpotifyRingbuffer();
     ~QSpotifyRingbuffer();
     void close();
+    /**
+     * \a reset is the same as calling \a close() and \a open() in a sequence.
+     */
+    void reset();
     void open();
 
     int read(char *data, int numBytes);

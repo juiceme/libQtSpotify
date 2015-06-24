@@ -34,6 +34,7 @@ public:
 private:
     void startStreaming(int channels, int sampleRate);
     void updateAudioBuffer();
+    void startAudioOutput();
 
     QAudioOutput *m_audioOutput;
     QIODevice *m_iodevice;

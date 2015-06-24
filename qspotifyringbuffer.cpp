@@ -12,8 +12,7 @@ QSpotifyRingbuffer::QSpotifyRingbuffer() :
 
 QSpotifyRingbuffer::~QSpotifyRingbuffer()
 {
-    if(m_data)
-        delete[] m_data;
+    if(m_data) delete[] m_data;
 }
 
 void QSpotifyRingbuffer::close()
@@ -23,6 +22,15 @@ void QSpotifyRingbuffer::close()
     m_writePos = 0;
     m_size = 0;
     m_isOpen = false;
+}
+
+void QSpotifyRingbuffer::reset()
+{
+    memset(m_data, 0, BUF_SIZE);
+    m_readPos = 0;
+    m_writePos = 0;
+    m_size = 0;
+    m_isOpen = true;
 }
 
 void QSpotifyRingbuffer::open()
@@ -39,12 +47,14 @@ int QSpotifyRingbuffer::read(char *data, int numBytes)
     if(numBytes > 0) {
         if(m_readPos + numBytes >= BUF_SIZE) {
             int firstBytes = BUF_SIZE - m_readPos;
+            int secondBytes = numBytes - firstBytes;
             memcpy(&data[0], &m_data[m_readPos], firstBytes);
-            memcpy(&data[firstBytes], &m_data[0], numBytes - firstBytes);
+            memcpy(&data[firstBytes], &m_data[0], secondBytes);
+            m_readPos = secondBytes;
         } else {
             memcpy(&data[0], &m_data[m_readPos], numBytes);
+            m_readPos += numBytes;
         }
-        m_readPos = (m_readPos + numBytes) % BUF_SIZE;
         m_size -= numBytes;
     }
     return numBytes;
@@ -57,12 +67,14 @@ int QSpotifyRingbuffer::write(const char *data, int numBytes)
     numBytes = std::min(numBytes, BUF_SIZE - m_size);
     if(m_writePos + numBytes >= BUF_SIZE) {
         int firstBytes = BUF_SIZE - m_writePos;
+        int secondBytes = numBytes - firstBytes;
         memcpy(&m_data[m_writePos], &data[0], firstBytes);
-        memcpy(&m_data[0], &data[firstBytes], numBytes - firstBytes);
+        memcpy(&m_data[0], &data[firstBytes], secondBytes);
+        m_writePos = secondBytes;
     } else {
         memcpy(&m_data[m_writePos], &data[0], numBytes);
+        m_writePos += numBytes;
     }
-    m_writePos = (m_writePos + numBytes) % BUF_SIZE;
     m_size += numBytes;
     return numBytes;
 }
