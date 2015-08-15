@@ -78,22 +78,6 @@ void ListModelBase<ItemType>::clear()
 }
 
 template <class ItemType>
-bool ListModelBase<ItemType>::removeRows(int row, int count, const QModelIndex &parent)
-{
-    Q_UNUSED(parent);
-    if (count == 0) return true;
-    if(row < 0 || (row+count) >= m_dataList.size()) return false;
-    beginRemoveRows(QModelIndex(),row,row+count-1);
-    for(int i=0; i<count; ++i){
-        auto i = m_dataList.takeAt(row);
-        disconnect(i, &QSpotifyObject::dataChanged, this, &ListModelBase<ItemType>::itemDataChanged);
-    }
-    endRemoveRows();
-    return true;
-
-}
-
-template <class ItemType>
 ItemType *ListModelBase<ItemType>::takeRow(int row){
     beginRemoveRows(QModelIndex(),row,row);
     auto item = m_dataList.takeAt(row);

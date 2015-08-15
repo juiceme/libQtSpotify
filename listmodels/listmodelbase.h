@@ -25,7 +25,6 @@ public:
     void appendRow(ItemType * item);
     void appendRows(const QList<ItemType *> &items);
     void insertRow(int row, ItemType *item);
-    bool removeRows(int row, int count, const QModelIndex &parent = QModelIndex());
     void replaceData(const QList<ItemType *> &newData);
     ItemType *takeRow(int row);
     ItemType *find(const QString &id) const;

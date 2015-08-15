@@ -18,11 +18,7 @@ class QSpotifyObject;
 class QSpotifyCacheManager
 {
 public:
-
-    static QSpotifyCacheManager& instance() {
-        static QSpotifyCacheManager inst;
-        return inst;
-    }
+    static QSpotifyCacheManager& instance();
 
     void removeObject(QSpotifyObject *obj);
     QSpotifyTrack *getTrack(sp_track *t, QSpotifyPlaylist *playlist = nullptr);
@@ -31,9 +27,9 @@ public:
 
     void cacheInfo();
 
-    void clearTables();
-
 private:
+    QSpotifyCacheManager() = default;
+
     int numTracks();
     int numAlbums();
     int numArtists();

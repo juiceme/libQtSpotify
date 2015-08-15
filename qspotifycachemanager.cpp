@@ -18,6 +18,11 @@
 #include "qspotifyartist.h"
 #include "qspotifyalbum.h"
 
+QSpotifyCacheManager &QSpotifyCacheManager::instance() {
+    static QSpotifyCacheManager inst;
+    return inst;
+}
+
 void QSpotifyCacheManager::removeObject(QSpotifyObject *obj)
 {
     if (auto track = dynamic_cast<QSpotifyTrack*>(obj)) {
@@ -100,19 +105,6 @@ QSpotifyAlbum *QSpotifyCacheManager::getAlbum(sp_album *a)
     m_albums.insert(a, albPtr);
 
     return albPtr;
-}
-
-void QSpotifyCacheManager::clearTables()
-{
-    for (auto it = m_tracks.begin(); it != m_tracks.end(); ++it)
-        it.value()->release();
-    m_tracks.clear();
-    for (auto it = m_albums.begin(); it != m_albums.end(); ++it)
-        it.value()->release();
-    m_albums.clear();
-    for (auto it = m_artists.begin(); it != m_artists.end(); ++it)
-        it.value()->release();
-    m_artists.clear();
 }
 
 void QSpotifyCacheManager::cacheInfo()

@@ -122,12 +122,14 @@ int QSpotifyAlbumBrowse::trackCount() const
 
 void QSpotifyAlbumBrowse::clearData()
 {
+    m_albumTracks->clear();
+
     if (m_sp_albumbrowse) {
         g_albumBrowseObjects.remove(m_sp_albumbrowse);
         sp_albumbrowse_release(m_sp_albumbrowse);
         m_sp_albumbrowse = nullptr;
     }
-    m_albumTracks->clear();
+
     m_artistObject = nullptr;
 
     m_hasMultipleArtists = false;

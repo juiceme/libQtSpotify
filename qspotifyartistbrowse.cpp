@@ -220,6 +220,7 @@ void QSpotifyArtistBrowse::processTopHits()
     int c = m_topHitsSearch->trackResults()->count();
     for (int i = 0; i < c && m_topTracks->count() < 10; ++i) {
         auto t = m_topHitsSearch->trackResults()->at(i);
+        t->addRef();
         QStringList artists = t->artists().split(", ");
         if (artists.contains(m_artist->name())) {
             m_topTracks->appendRow(t);
