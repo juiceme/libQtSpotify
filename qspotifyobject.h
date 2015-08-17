@@ -77,9 +77,9 @@ protected:
     virtual bool updateData() = 0;
 
 private:
-    bool m_isLoaded;
+    bool m_isLoaded{};
     bool m_autoConnect;
-    int m_refCount;
+    int m_refCount{1};
 
     QSpotifyObject(const QSpotifyObject&) = delete;
 };

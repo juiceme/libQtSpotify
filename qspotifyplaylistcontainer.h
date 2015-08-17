@@ -91,7 +91,7 @@ private:
     QList<QObject *> m_formattedUnavailablePlaylists;
     QList<QObject *> m_playlistsFlat;
 
-    bool m_updateEventPosted;
+    bool m_updateEventPosted{};
 
     friend class QSpotifyUser;
     friend class QSpotifyPlaylist;

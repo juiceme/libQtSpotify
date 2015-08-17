@@ -42,9 +42,6 @@
 #ifndef QSPOTIFYTRACKLIST_H
 #define QSPOTIFYTRACKLIST_H
 
-#include <QtCore/QList>
-#include <QtCore/QObject>
-
 #include "qspotifytrack.h"
 #include "listmodels/listmodelbase.h"
 
@@ -82,19 +79,11 @@ public:
 
     void play();
     Q_INVOKABLE void playTrack(int index);
-    bool playTrackAtIndex(int i);
-    void playLast();
 
     int totalDuration() const;
 
-    bool isShuffle() const { return m_shuffle; }
-    virtual void setShuffle(bool s) { m_shuffle = s; }
-
     int indexOf(QSpotifyTrack *ptr) const
     { return m_dataList.indexOf(ptr); }
-
-    bool contains(QSpotifyTrack *ptr) const
-    { return m_dataList.contains(ptr); }
 
     void replace(int i, QSpotifyTrack *ptr)
     { m_dataList.replace(i, ptr); }
@@ -104,8 +93,6 @@ public:
 protected:
     int nextAvailable(int i);
     int previousAvailable(int i);
-
-    bool m_shuffle{};
 
 private:
     void playCurrentTrack();

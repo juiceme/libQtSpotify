@@ -79,11 +79,11 @@ private:
     void populateResults(sp_toplistbrowse *tl);
     void setBusy(bool busy);
 
-    sp_toplistbrowse *m_sp_browsetracks;
-    sp_toplistbrowse *m_sp_browseartists;
-    sp_toplistbrowse *m_sp_browsealbums;
+    sp_toplistbrowse *m_sp_browsetracks{};
+    sp_toplistbrowse *m_sp_browseartists{};
+    sp_toplistbrowse *m_sp_browsealbums{};
 
-    bool m_busy;
+    bool m_busy{};
 
     QSpotifyTrackList *m_trackResults;
     QSpotifyAlbumList *m_albumResults;

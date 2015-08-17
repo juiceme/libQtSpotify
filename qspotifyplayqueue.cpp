@@ -268,7 +268,7 @@ void QSpotifyPlayQueue::setShuffle(bool s, bool force)
     if (!force && s == m_shuffle) return;
     qDebug() << "QSpotifyPlayQueue::setShuffle" << s;
 
-    QSpotifyTrackList::setShuffle(s);
+    m_shuffle = s;
     if (s) {
         shuffleInitialTracks();
         int currentIndex = m_initialTracks.indexOf(m_currentTrack);

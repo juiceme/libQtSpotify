@@ -160,28 +160,28 @@ private Q_SLOTS:
 private:
     QSpotifyTrack(sp_track *track, QSpotifyPlaylist *playlist);
 
-    sp_track *m_sp_track;
-    QSpotifyPlaylist *m_playlist;
+    sp_track *m_sp_track{};
+    QSpotifyPlaylist *m_playlist{};
 
-    QSpotifyAlbum *m_album;
-    QSpotifyArtist *m_artist;
+    QSpotifyAlbum *m_album{};
+    QSpotifyArtist *m_artist{};
     QString m_albumString;
     QString m_artistsString;
-    int m_discNumber;
-    int m_duration;
+    int m_discNumber{};
+    int m_duration{};
     QString m_durationString;
     TrackError m_error;
-    int m_discIndex;
-    bool m_isAvailable;
+    int m_discIndex{};
+    bool m_isAvailable{};
     QString m_name;
-    int m_numArtists;
-    int m_popularity;
-    bool m_seen;
+    int m_numArtists{};
+    int m_popularity{};
+    bool m_seen{true};
     QString m_creator;
     QDateTime m_creationDate;
-    OfflineStatus m_offlineStatus;
+    OfflineStatus m_offlineStatus{No};
 
-    bool m_isCurrentPlayingTrack;
+    bool m_isCurrentPlayingTrack{};
 
     friend class QSpotifyPlaylist;
     friend class QSpotifySession;

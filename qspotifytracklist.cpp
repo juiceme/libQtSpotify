@@ -139,9 +139,8 @@ void QSpotifyTrackList::playTrack(int index)
 
 int QSpotifyTrackList::removeAll(QSpotifyTrack *ptr)
 {
-    int count = 0;
     beginResetModel();
-    count = m_dataList.removeAll(ptr);
+    int count = m_dataList.removeAll(ptr);
     endResetModel();
     return count;   
 }

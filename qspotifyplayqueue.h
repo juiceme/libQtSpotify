@@ -98,6 +98,7 @@ private:
     QSpotifyTrackList* m_sourceTrackList{};
 
     bool m_repeat{};
+    bool m_shuffle{};
 
     QSpotifyTrack *m_currentTrack{};
     int m_currentIndex{};

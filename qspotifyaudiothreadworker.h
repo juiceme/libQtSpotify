@@ -36,11 +36,11 @@ private:
     void updateAudioBuffer();
     void startAudioOutput();
 
-    QAudioOutput *m_audioOutput;
-    QIODevice *m_iodevice;
-    int m_audioTimerID;
-    int m_timeCounter;
-    int m_previousElapsedTime;
+    QAudioOutput *m_audioOutput{};
+    QIODevice *m_iodevice{};
+    int m_audioTimerID{};
+    int m_timeCounter{};
+    int m_previousElapsedTime{};
 };
 
 #endif // QSPOTIFYAUDIOTHREADWORKER_H

@@ -54,9 +54,6 @@
 
 QSpotifyUser::QSpotifyUser(sp_user *user)
     : QSpotifyObject(true)
-    , m_playlistContainer(nullptr)
-    , m_starredList(nullptr)
-    , m_inbox(nullptr)
 {
     Q_ASSERT(user);
     sp_user_add_ref(user);

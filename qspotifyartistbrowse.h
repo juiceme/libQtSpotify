@@ -42,8 +42,6 @@
 #ifndef QSPOTIFYARTISTBROWSE_H
 #define QSPOTIFYARTISTBROWSE_H
 
-#include <memory>
-
 #include <QtCore/QStringList>
 
 #include "qspotifysearch.h"
@@ -102,9 +100,9 @@ private:
     void clearData();
     void processData();
 
-    sp_artistbrowse *m_sp_artistbrowse;
+    sp_artistbrowse *m_sp_artistbrowse{};
 
-    QSpotifyArtist *m_artist;
+    QSpotifyArtist *m_artist{};
     QSpotifyTrackList *m_topTracks;
     int m_albumsCount;
     int m_singlesCount;
@@ -114,11 +112,11 @@ private:
     QString m_pictureId;
     QStringList m_biography;
     QSpotifyArtistList *m_similarArtists;
-    bool m_busy;
+    bool m_busy{};
     QSpotifySearch *m_topHitsSearch;
 
-    bool m_topHitsReady;
-    bool m_dataReady;
+    bool m_topHitsReady{};
+    bool m_dataReady{};
 };
 
 #endif // QSPOTIFYARTISTBROWSE_H

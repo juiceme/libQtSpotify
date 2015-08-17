@@ -124,17 +124,17 @@ static void callback_playlist_moved(sp_playlistcontainer *, sp_playlist *, int p
 
 QSpotifyPlaylistContainer::QSpotifyPlaylistContainer(sp_playlistcontainer *container)
     : QSpotifyObject(true)
-    , m_updateEventPosted(false)
+    , m_container{container}
 {
     Q_ASSERT(container);
-    m_container = container;
+
     m_callbacks = new sp_playlistcontainer_callbacks;
-    memset(m_callbacks, 0, sizeof(sp_playlistcontainer_callbacks));
-    m_callbacks->container_loaded = callback_container_loaded;
     m_callbacks->playlist_added = callback_playlist_added;
-    m_callbacks->playlist_moved = callback_playlist_moved;
     m_callbacks->playlist_removed = callback_playlist_removed;
+    m_callbacks->playlist_moved = callback_playlist_moved;
+    m_callbacks->container_loaded = callback_container_loaded;
     sp_playlistcontainer_add_callbacks(m_container, m_callbacks, this);
+
     connect(QSpotifySession::instance(), SIGNAL(offlineModeChanged()), this, SLOT(updatePlaylists()));
 }
 

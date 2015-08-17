@@ -44,10 +44,8 @@
 #include "qspotifycachemanager.h"
 
 QSpotifyObject::QSpotifyObject(bool autoConnectToSessionSignal)
-  : QObject(0)
-  , m_isLoaded(false)
+  : QObject(nullptr)
   , m_autoConnect(autoConnectToSessionSignal)
-  , m_refCount(1)
 {
 }
 

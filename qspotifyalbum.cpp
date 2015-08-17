@@ -41,19 +41,13 @@
 
 #include "qspotifyalbum.h"
 
-#include <QtCore/QDebug>
-
 #include <libspotify/api.h>
 
 #include "qspotifyalbumbrowse.h"
 #include "qspotifyartist.h"
-#include "qspotifysession.h"
 
 QSpotifyAlbum::QSpotifyAlbum(sp_album *album)
     : QSpotifyObject(true)
-    , m_isAvailable(false)
-    , m_year(0)
-    , m_type(Unknown)
 {
     Q_ASSERT(album);
     connect(this, SIGNAL(dataChanged()), this, SIGNAL(albumDataChanged()));

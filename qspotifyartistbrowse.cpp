@@ -73,11 +73,6 @@ static void callback_artistbrowse_complete(sp_artistbrowse *result, void *)
 
 QSpotifyArtistBrowse::QSpotifyArtistBrowse(QObject *parent)
     : QObject(parent)
-    , m_sp_artistbrowse(nullptr)
-    , m_artist(nullptr)
-    , m_busy(false)
-    , m_topHitsReady(false)
-    , m_dataReady(false)
 {
     m_topTracks = new QSpotifyTrackList(this);
     m_similarArtists = new QSpotifyArtistList(this);
@@ -197,6 +192,7 @@ void QSpotifyArtistBrowse::processData()
                 m_appearsOnCount++;
             }
         }
+        m_albums->reserve(c);
         m_albums->appendRows(albums + singles + compilations + appearsOn);
 
         c = sp_artistbrowse_num_similar_artists(m_sp_artistbrowse);

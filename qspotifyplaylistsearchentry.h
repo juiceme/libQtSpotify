@@ -42,8 +42,6 @@
 #ifndef QSPOTIFYPLAYLISTSEARCHENTRY_H
 #define QSPOTIFYPLAYLISTSEARCHENTRY_H
 
-#include <memory>
-
 #include "qspotifyobject.h"
 
 class QSpotifyPlaylist;

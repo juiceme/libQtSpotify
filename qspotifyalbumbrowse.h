@@ -42,8 +42,6 @@
 #ifndef QSPOTIFYALBUMBROWSE_H
 #define QSPOTIFYALBUMBROWSE_H
 
-#include <memory>
-
 #include <QtCore/QStringList>
 
 class QSpotifyAlbum;
@@ -96,17 +94,17 @@ private:
     void clearData();
     void processData();
 
-    sp_albumbrowse *m_sp_albumbrowse;
+    sp_albumbrowse *m_sp_albumbrowse{};
 
-    QSpotifyAlbum *m_album;
-    QSpotifyTrackList *m_albumTracks;
-    QSpotifyArtist *m_artistObject;
+    QSpotifyAlbum *m_album{};
+    QSpotifyTrackList *m_albumTracks{};
+    QSpotifyArtist *m_artistObject{};
 
     QStringList m_review;
 
-    bool m_hasMultipleArtists;
+    bool m_hasMultipleArtists{};
 
-    bool m_busy;
+    bool m_busy{};
 
     friend class QSpotifyPlaylist;
     friend class QSpotifyUser;

@@ -101,9 +101,9 @@ private:
     QString m_canonicalName;
     QString m_displayName;
 
-    mutable QSpotifyPlaylistContainer *m_playlistContainer;
-    mutable QSpotifyPlaylist *m_starredList;
-    mutable QSpotifyPlaylist *m_inbox;
+    mutable QSpotifyPlaylistContainer *m_playlistContainer{};
+    mutable QSpotifyPlaylist *m_starredList{};
+    mutable QSpotifyPlaylist *m_inbox{};
 
     friend class QSpotifySession;
     friend class QSpotifyPlaylist;

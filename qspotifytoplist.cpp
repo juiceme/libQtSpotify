@@ -86,10 +86,6 @@ static void callback_toplistbrowse_complete(sp_toplistbrowse *result, void *)
 
 QSpotifyToplist::QSpotifyToplist(QObject *parent)
     : QObject(parent)
-    , m_sp_browsetracks(nullptr)
-    , m_sp_browseartists(nullptr)
-    , m_sp_browsealbums(nullptr)
-    , m_busy(false)
 {
     m_trackResults = new QSpotifyTrackList(this);
     m_albumResults = new QSpotifyAlbumList(this);
@@ -171,6 +167,7 @@ void QSpotifyToplist::populateResults(sp_toplistbrowse *tl)
 
     if (tl == m_sp_browsetracks) {
         int c = sp_toplistbrowse_num_tracks(tl);
+        m_trackResults->reserve(c);
         for (int i = 0; i < c; ++i) {
             if (auto strack = sp_toplistbrowse_track(tl, i)) {
                 auto track = QSpotifyCacheManager::instance().getTrack(strack);
@@ -184,6 +181,7 @@ void QSpotifyToplist::populateResults(sp_toplistbrowse *tl)
 
     if (tl == m_sp_browseartists) {
         int c = sp_toplistbrowse_num_artists(tl);
+        m_artistResults->reserve(c);
         for (int i = 0; i < c; ++i) {
             auto artist = QSpotifyCacheManager::instance().getArtist(sp_toplistbrowse_artist(tl, i));
             m_artistResults->appendRow(artist);
@@ -192,6 +190,7 @@ void QSpotifyToplist::populateResults(sp_toplistbrowse *tl)
 
     if (tl == m_sp_browsealbums) {
         int c = sp_toplistbrowse_num_albums(tl);
+        m_albumResults->reserve(c);
         for (int i = 0; i < c; ++i) {
             sp_album *a = sp_toplistbrowse_album(tl, i);
             auto album = QSpotifyCacheManager::instance().getAlbum(a);

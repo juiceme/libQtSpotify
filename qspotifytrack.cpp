@@ -55,17 +55,6 @@
 QSpotifyTrack::QSpotifyTrack(sp_track *track, QSpotifyPlaylist *playlist)
     : QSpotifyObject(true)
     , m_playlist(playlist)
-    , m_album(nullptr)
-    , m_artist(nullptr)
-    , m_discNumber(0)
-    , m_duration(0)
-    , m_discIndex(0)
-    , m_isAvailable(false)
-    , m_numArtists(0)
-    , m_popularity(0)
-    , m_seen(true)
-    , m_offlineStatus(No)
-    , m_isCurrentPlayingTrack(false)
 {
     Q_ASSERT(track);
     sp_track_add_ref(track);

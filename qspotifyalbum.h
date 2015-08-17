@@ -42,8 +42,6 @@
 #ifndef QSPOTIFYALBUM_H
 #define QSPOTIFYALBUM_H
 
-#include <memory>
-
 #include "qspotifyobject.h"
 
 class QSpotifyAlbumBrowse;
@@ -99,11 +97,11 @@ private:
 
     sp_album *m_sp_album;
 
-    bool m_isAvailable;
+    bool m_isAvailable{};
     QString m_artist;
     QString m_name;
-    int m_year;
-    Type m_type;
+    int m_year{};
+    Type m_type{Unknown};
     QString m_sectionType;
     QString m_coverId;
 

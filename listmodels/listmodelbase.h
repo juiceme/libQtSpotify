@@ -35,6 +35,8 @@ public:
     ItemType *at(int index) const { return m_dataList.at(index); }
     int count() const { return m_dataList.count(); }
 
+    void reserve(int size) { m_dataList.reserve(size);}
+
     using iterator = typename QList<ItemType *>::Iterator;
     using const_iterator = typename QList<ItemType *>::ConstIterator;
 

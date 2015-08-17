@@ -41,6 +41,8 @@
 
 #include "qspotifyalbumbrowse.h"
 
+#include <algorithm>
+
 #include <QtCore/QCoreApplication>
 #include <QtCore/QEvent>
 #include <QtCore/QHash>
@@ -70,12 +72,6 @@ static void callback_albumbrowse_complete(sp_albumbrowse *result, void *)
 
 QSpotifyAlbumBrowse::QSpotifyAlbumBrowse(QObject *parent)
     : QObject(parent)
-    , m_sp_albumbrowse(nullptr)
-    , m_album(nullptr)
-    , m_albumTracks(nullptr)
-    , m_artistObject(nullptr)
-    , m_hasMultipleArtists(false)
-    , m_busy(false)
 {
     m_albumTracks = new QSpotifyTrackList(this);
 }
@@ -144,6 +140,7 @@ void QSpotifyAlbumBrowse::processData()
 
         m_albumTracks->clear();
         int c = sp_albumbrowse_num_tracks(m_sp_albumbrowse);
+        m_albumTracks->reserve(c);
         for (int i = 0; i < c; ++i) {
             if (auto track = sp_albumbrowse_track(m_sp_albumbrowse, i)) {
                 auto qtrack = QSpotifyCacheManager::instance().getTrack(track);
@@ -194,12 +191,8 @@ void QSpotifyAlbumBrowse::enqueue()
 
 bool QSpotifyAlbumBrowse::isStarred() const
 {
-    int c = m_albumTracks->count();
-    for (int i = 0; i < c; ++i) {
-        if (!m_albumTracks->at(i)->isStarred())
-            return false;
-    }
-    return true;
+    return std::all_of(m_albumTracks->begin(), m_albumTracks->end(),
+                       [](const QSpotifyTrack* t) { return t->isStarred(); });
 }
 
 void QSpotifyAlbumBrowse::setStarred(bool s)

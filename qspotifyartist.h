@@ -42,15 +42,12 @@
 #ifndef QSPOTIFYARTIST_H
 #define QSPOTIFYARTIST_H
 
-#include <memory>
-
 #include "qspotifyobject.h"
 
 class QSpotifyArtistBrowse;
 struct sp_artist;
 
-class QSpotifyArtist :
-        public QSpotifyObject
+class QSpotifyArtist : public QSpotifyObject
 {
     Q_OBJECT
     Q_PROPERTY(QString name READ name NOTIFY artistDataChanged)

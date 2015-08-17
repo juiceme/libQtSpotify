@@ -169,18 +169,9 @@ static void callback_track_seen_changed(sp_playlist *, int position, bool seen, 
 
 QSpotifyPlaylist::QSpotifyPlaylist(Type type, sp_playlist *playlist, bool incrRefCount)
     : QSpotifyObject(true)
-    , m_callbacks(nullptr)
     , m_type(type)
-    , m_offlineStatus(No)
-    , m_collaborative(false)
-    , m_offlineDownloadProgress(0)
-    , m_availableOffline(false)
-    , m_hasImage(false)
-    , m_skipUpdateTracks(false)
-    , m_updateEventPosted(false)
 {
     Q_ASSERT(playlist);
-    m_trackList = nullptr;
     if (type != Folder && type != None)
         m_trackList = new QSpotifyTrackList(this);
 
@@ -268,14 +259,11 @@ bool QSpotifyPlaylist::updateData()
 
     if (m_trackList && m_trackList->isEmpty() && !m_skipUpdateTracks) {
         int count = sp_playlist_num_tracks(m_sp_playlist);
+        m_trackList->reserve(count);
         int insertPos = -1; // Append
         if (m_type == Starred || m_type == Inbox) insertPos = 0; // Prepend
         for (int i = 0; i < count; ++i) {
             auto strack = sp_playlist_track(m_sp_playlist, i);
-            if(!strack) {
-                qWarning() << "###No strack";
-                continue;
-            }
             addTrack(strack, insertPos);
         }
         updated = true;

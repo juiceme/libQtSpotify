@@ -19,13 +19,7 @@ QHash<sp_image *, QString> g_imageRequestObject;
 
 QSpotifyAudioThreadWorker::QSpotifyAudioThreadWorker(QObject *parent)
     : QObject(parent)
-    , m_audioOutput(nullptr)
-    , m_iodevice(nullptr)
-    , m_audioTimerID(0)
-    , m_timeCounter(0)
-    , m_previousElapsedTime(0)
-{
-}
+{}
 
 bool QSpotifyAudioThreadWorker::event(QEvent *e)
 {

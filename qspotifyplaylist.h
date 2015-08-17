@@ -174,21 +174,21 @@ private:
 
     void postUpdateEvent();
 
-    sp_playlist *m_sp_playlist;
-    sp_playlist_callbacks *m_callbacks;
+    sp_playlist *m_sp_playlist{};
+    sp_playlist_callbacks *m_callbacks{};
 
-    QSpotifyTrackList *m_trackList;
+    QSpotifyTrackList *m_trackList{};
     QSet<sp_track *> m_tracksSet;
 
     QString m_name;
     Type m_type;
-    OfflineStatus m_offlineStatus;
+    OfflineStatus m_offlineStatus{No};
     QString m_owner;
-    bool m_collaborative;
-    int m_offlineDownloadProgress;
-    bool m_availableOffline;
+    bool m_collaborative{};
+    int m_offlineDownloadProgress{};
+    bool m_availableOffline{};
 
-    bool m_hasImage;
+    bool m_hasImage{};
     QString m_ImageId;
     QString m_hashKey;
 
@@ -200,9 +200,9 @@ private:
 
     QString m_uri;
 
-    bool m_skipUpdateTracks;
+    bool m_skipUpdateTracks{};
 
-    bool m_updateEventPosted;
+    bool m_updateEventPosted{};
 
     friend class QSpotifyPlaylistContainer;
     friend class QSpotifyUser;
