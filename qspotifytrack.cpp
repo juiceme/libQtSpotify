@@ -187,6 +187,16 @@ bool QSpotifyTrack::updateData()
                 }
             }
         }
+        // Get track uri
+        sp_link *link = sp_link_create_from_track(m_sp_track, 0);
+        if (link) {
+            char buffer[200];
+            int uriSize = sp_link_as_string(link, &buffer[0], 200);
+            m_trackId = QString::fromUtf8(&buffer[0], uriSize);
+            sp_link_release(link);
+            updated = true;
+        }
+
     }
 
     return updated;
