@@ -43,7 +43,7 @@ double MPRISMediaPlayerPlayer::Rate()
 
 qint64 MPRISMediaPlayerPlayer::Position()
 {
-    return QSpotifySession::instance()->currentTrackPosition()*1000;
+    return QSpotifySession::instance()->currentTrackPosition()*(qint64)1000;
 }
 
 double MPRISMediaPlayerPlayer::MinimumRate()
