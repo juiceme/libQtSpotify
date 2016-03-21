@@ -58,6 +58,7 @@ class QSpotifyTrack : public QSpotifyObject
 {
     Q_OBJECT
     Q_PROPERTY(QString name READ name NOTIFY trackDataChanged)
+    Q_PROPERTY(QString trackId READ trackId NOTIFY trackDataChanged)
     Q_PROPERTY(QString artists READ artists NOTIFY trackDataChanged)
     Q_PROPERTY(QString album READ album NOTIFY trackDataChanged)
     Q_PROPERTY(QString albumCoverId READ albumCoverId NOTIFY trackDataChanged)
@@ -113,6 +114,7 @@ public:
     bool isStarred() const;
     void setIsStarred(bool v);
     QString name() const { return m_name; }
+    QString trackId() const { return m_trackId; }
     int popularity() const { return m_popularity; }
     QSpotifyAlbum *albumObject() const { return m_album; }
     QSpotifyArtist *artistObject() const { return m_artist; }
@@ -161,6 +163,7 @@ private:
     QSpotifyTrack(sp_track *track, QSpotifyPlaylist *playlist);
 
     sp_track *m_sp_track{};
+    QString m_trackId;
     QSpotifyPlaylist *m_playlist{};
 
     QSpotifyAlbum *m_album{};

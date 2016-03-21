@@ -43,7 +43,7 @@ double MPRISMediaPlayerPlayer::Rate()
 
 qint64 MPRISMediaPlayerPlayer::Position()
 {
-    return QSpotifySession::instance()->currentTrackPosition();
+    return QSpotifySession::instance()->currentTrackPosition()*(qint64)1000;
 }
 
 double MPRISMediaPlayerPlayer::MinimumRate()
@@ -61,8 +61,14 @@ QVariantMap MPRISMediaPlayerPlayer::Metadata()
     auto inst = QSpotifySession::instance();
     QVariantMap metadata;
     if (auto track = inst->currentTrack()) {
-        metadata.insert("mpris:trackid", QString("/org/mpris/MediaPlayer2/Track/%1").arg(1));//TODO use correct value?
-        metadata.insert("mpris:length", track->durationString());
+        metadata.insert("mpris:trackid", track->trackId());
+        metadata.insert("mpris:artUrl",  track->albumCoverId().replace("spotify:image:", "http://open.spotify.com/thumb/"));
+        metadata.insert("mpris:length", (qint64)1000*track->duration());
+        metadata.insert("xesam:album", track->album());
+        metadata.insert("xesam:autoRating", track->popularity());
+        metadata.insert("xesam:discNumber", track->discNumber());
+        metadata.insert("xesam:trackNumber", track->discIndex());
+        metadata.insert("xesam:contentCreated", track->creationDate().toString());
         metadata.insert("xesam:albumArtist", track->albumObject()->artist());
         metadata.insert("xesam:artist", track->artistObject()->name());
         metadata.insert("xesam:title", track->name());
