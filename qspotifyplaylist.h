@@ -63,6 +63,7 @@ class QSpotifyPlaylist : public QSpotifyObject
     // as certain function don't work when it isn't (e.g. offline_mode).
     Q_OBJECT
     Q_PROPERTY(QString name READ name NOTIFY playlistDataChanged)
+    Q_PROPERTY(QString description READ description NOTIFY playlistDataChanged)
     Q_PROPERTY(int trackCount READ trackCount NOTIFY playlistDataChanged)
     Q_PROPERTY(int totalDuration READ totalDuration NOTIFY playlistDataChanged)
     Q_PROPERTY(bool isLoaded READ isLoaded NOTIFY thisIsLoadedChanged)
@@ -104,6 +105,7 @@ public:
     bool isLoaded();
 
     QString name() const { return m_name; }
+    QString description() const { return m_description; }
     int trackCount() const;
     int totalDuration() const;
     Type type() const { return m_type; }
@@ -184,6 +186,7 @@ private:
     QSet<sp_track *> m_tracksSet;
 
     QString m_name;
+    QString m_description;
     Type m_type;
     OfflineStatus m_offlineStatus{No};
     QString m_owner;

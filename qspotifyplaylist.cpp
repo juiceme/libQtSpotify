@@ -214,6 +214,14 @@ bool QSpotifyPlaylist::updateData()
                 updated = true;
             }
         }
+
+        if (auto rawDescription = sp_playlist_get_description(m_sp_playlist)) {
+            QString description = QString::fromUtf8(rawDescription);
+            if (m_description != description) {
+                m_description = description;
+                updated = true;
+            }
+        }
     }
 
     if (m_hashKey.isEmpty()) {
