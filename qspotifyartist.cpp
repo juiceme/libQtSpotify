@@ -46,6 +46,7 @@
 #include <libspotify/api.h>
 
 #include "qspotifyartistbrowse.h"
+#include "qspotifyutil.h"
 
 QSpotifyArtist::QSpotifyArtist(sp_artist *artist)
     : QSpotifyObject(true)
@@ -87,13 +88,10 @@ bool QSpotifyArtist::updateData()
 
     if (m_pictureId.isEmpty()) {
         sp_link *link = sp_link_create_from_artist_portrait(m_sp_artist, SP_IMAGE_SIZE_NORMAL);
-        if (link) {
-            char buffer[200];
-            int uriSize = sp_link_as_string(link, &buffer[0], 200);
-            m_pictureId = QString::fromUtf8(&buffer[0], uriSize);
-            sp_link_release(link);
+        QSpotifyUtil::spLinkToQString(link, [this, &updated](const QString &picId) {
+            m_pictureId = picId;
             updated = true;
-        }
+        });
     }
 
     return updated;

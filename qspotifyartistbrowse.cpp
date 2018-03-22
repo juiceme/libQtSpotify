@@ -56,6 +56,7 @@
 #include "qspotifytracklist.h"
 #include "qspotifyuser.h"
 #include "qspotifycachemanager.h"
+#include "qspotifyutil.h"
 
 #include "listmodels/qspotifyartistlist.h"
 #include "listmodels/qspotifyalbumlist.h"
@@ -158,12 +159,9 @@ void QSpotifyArtistBrowse::processData()
 
         if (sp_artistbrowse_num_portraits(m_sp_artistbrowse) > 0) {
             sp_link *link = sp_link_create_from_artistbrowse_portrait(m_sp_artistbrowse, 0);
-            if (link) {
-                char buffer[200];
-                int uriSize = sp_link_as_string(link, &buffer[0], 200);
-                m_pictureId = QString::fromUtf8(&buffer[0], uriSize);
-                sp_link_release(link);
-            }
+            QSpotifyUtil::spLinkToQString(link, [this] (const QString &picId) {
+                m_pictureId = picId;
+            });
         }
 
         int c = qMin(80, sp_artistbrowse_num_albums(m_sp_artistbrowse));

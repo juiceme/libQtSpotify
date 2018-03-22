@@ -28,7 +28,8 @@ SOURCES += ../libQtSpotify/qspotifysession.cpp \
     ../libQtSpotify/listmodels/qspotifyplaylistsearchlist.cpp \
     ../libQtSpotify/qspotifycachemanager.cpp \
     ../libQtSpotify/qspotifyringbuffer.cpp \
-    ../libQtSpotify/mpris/mprismediaplayerplayer.cpp
+    ../libQtSpotify/mpris/mprismediaplayerplayer.cpp \
+    ../libQtSpotify/qspotifyutil.cpp
 
 HEADERS += ../libQtSpotify/qspotifysession.h \
     ../libQtSpotify/spotify_key.h \
@@ -59,7 +60,8 @@ HEADERS += ../libQtSpotify/qspotifysession.h \
     ../libQtSpotify/qspotifycachemanager.h \
     ../libQtSpotify/qspotifyringbuffer.h \
     ../libQtSpotify/mpris/mprismediaplayer.h \
-    ../libQtSpotify/mpris/mprismediaplayerplayer.h
+    ../libQtSpotify/mpris/mprismediaplayerplayer.h \
+    ../libQtSpotify/qspotifyutil.h
 
 QMAKE_CXXFLAGS += -std=c++0x -Wno-unused-function
 

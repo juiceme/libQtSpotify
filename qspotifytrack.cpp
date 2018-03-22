@@ -51,6 +51,7 @@
 #include "qspotifytracklist.h"
 #include "qspotifyuser.h"
 #include "qspotifycachemanager.h"
+#include "qspotifyutil.h"
 
 QSpotifyTrack::QSpotifyTrack(sp_track *track, QSpotifyPlaylist *playlist)
     : QSpotifyObject(true)
@@ -188,14 +189,10 @@ bool QSpotifyTrack::updateData()
         }
         // Get track uri
         sp_link *link = sp_link_create_from_track(m_sp_track, 0);
-        if (link) {
-            char buffer[200];
-            int uriSize = sp_link_as_string(link, &buffer[0], 200);
-            m_trackId = QString::fromUtf8(&buffer[0], uriSize);
-            sp_link_release(link);
+        QSpotifyUtil::spLinkToQString(link, [this, &updated] (const QString &trackId) {
+            m_trackId = trackId;
             updated = true;
-        }
-
+        });
     }
 
     return updated;

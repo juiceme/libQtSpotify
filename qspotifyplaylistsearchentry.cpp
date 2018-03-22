@@ -60,6 +60,7 @@ QSpotifyPlaylistSearchEntry::~QSpotifyPlaylistSearchEntry()
 }
 
 QSpotifyPlaylist *QSpotifyPlaylistSearchEntry::playlist() {
+    // TODO this is problematic: both pl and this will "OWN" m_sp_playlist and free it in the end.
     auto pl = new QSpotifyPlaylist(QSpotifyPlaylist::Playlist, m_sp_playlist, true);
     pl->init();
     return pl;

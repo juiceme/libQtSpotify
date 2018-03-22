@@ -54,6 +54,7 @@
 #include "qspotifytrack.h"
 #include "qspotifyuser.h"
 #include "qspotifycachemanager.h"
+#include "qspotifyutil.h"
 
 static QHash<QString, byte*> m_imagePointers;
 
@@ -226,16 +227,9 @@ bool QSpotifyPlaylist::updateData()
 
     if (m_hashKey.isEmpty()) {
         auto link = sp_link_create_from_playlist(m_sp_playlist);
-        if(link) {
-            char buffer[200];
-            int uriSize = sp_link_as_string(link, &buffer[0], 200);
-            if(uriSize >= 200) {
-                qWarning() << "Link is larger than buffer !!";
-            }
-            m_hashKey = QString::fromUtf8(&buffer[0], uriSize);
-            sp_link_release(link);
-            // this is not really an update as its used only internal.
-        }
+        QSpotifyUtil::spLinkToQString(link, [this, &updated] (const QString &hashKey) {
+            m_hashKey = hashKey;
+        });
     }
 
     // Image

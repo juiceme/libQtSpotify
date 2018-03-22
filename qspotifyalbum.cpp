@@ -45,6 +45,7 @@
 
 #include "qspotifyalbumbrowse.h"
 #include "qspotifyartist.h"
+#include "qspotifyutil.h"
 
 QSpotifyAlbum::QSpotifyAlbum(sp_album *album)
     : QSpotifyObject(true)
@@ -90,13 +91,10 @@ bool QSpotifyAlbum::updateData()
     const byte *album_cover_id = sp_album_cover(m_sp_album, SP_IMAGE_SIZE_NORMAL);
     if (album_cover_id != nullptr && m_coverId.isEmpty()) {
         sp_link *link = sp_link_create_from_album_cover(m_sp_album, SP_IMAGE_SIZE_NORMAL);
-        if (link) {
-            char buffer[200];
-            int uriSize = sp_link_as_string(link, &buffer[0], 200);
-            m_coverId = QString::fromUtf8(&buffer[0], uriSize);
-            sp_link_release(link);
+        QSpotifyUtil::spLinkToQString(link, [this, &updated] (const QString &coverId) {
+            m_coverId = coverId;
             updated = true;
-        }
+        });
     }
 
     if (isAvailable != m_isAvailable) {
