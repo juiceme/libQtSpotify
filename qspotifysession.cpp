@@ -1173,6 +1173,60 @@ void QSpotifySession::setShowOfflineSwitch(bool on)
     emit showOfflineSwitchChanged();
 }
 
+void QSpotifySession::handleUri(const QString &uri)
+{
+    qDebug() << "QSpotifySession::handleUri" << uri;
+    sp_link *link = sp_link_create_from_string(uri.toLatin1().data());
+    const sp_linktype link_type = sp_link_type(link);
+    switch (link_type) {
+    case SP_LINKTYPE_INVALID: // TODO: error to user
+        break;
+    case SP_LINKTYPE_TRACK: {
+        sp_track *track = sp_link_as_track(link);
+        auto qTrack = QSpotifyCacheManager::instance().getTrack(track);
+        auto recv = new QObject(); // dummy receveiver
+        auto playHandle = [this, qTrack, recv]() {
+            qTrack->disconnect(recv); // make sure we don't get called again
+            QSpotifyTrackList *trackList = new QSpotifyTrackList();
+            trackList->appendRow(qTrack);
+            m_playQueue->playTrack(trackList, 0);
+            delete trackList; // No longer needed
+            recv ->deleteLater();
+        };
+        connect(qTrack, &QSpotifyTrack::trackDataChanged, recv, playHandle);
+        break;
+    }
+    case SP_LINKTYPE_ALBUM: // TODO: add support
+        qDebug() << "Album links not supported!";
+        break;
+    case SP_LINKTYPE_ARTIST: // TODO: add support
+        qDebug() << "Artist links not supported!";
+        break;
+    case SP_LINKTYPE_SEARCH: // TODO: add support
+        qDebug() << "Search links not supported!";
+        break;
+    case SP_LINKTYPE_PLAYLIST: // TODO: add support
+        qDebug() << "Playlist links not supported!";
+        break;
+    case SP_LINKTYPE_PROFILE: // TODO: add support
+        qDebug() << "Profile links not supported!";
+        break;
+    case SP_LINKTYPE_STARRED: // TODO: add support
+        qDebug() << "Starred links not supported!";
+        break;
+    case SP_LINKTYPE_LOCALTRACK: // TODO: add support
+        qDebug() << "Local track links not supported!";
+        break;
+    case SP_LINKTYPE_IMAGE: // TODO: add support
+        qDebug() << "Image links not supported!";
+        break;
+    case SP_LINKTYPE_TOPLIST: // TODO: add support
+        qDebug() << "Toplist links not supported!";
+        break;
+    }
+    sp_link_release(link);
+}
+
 void QSpotifySession::setSyncOverMobile(bool s)
 {
     qDebug() << "QSpotifySession::setSyncOverMobile";

@@ -202,6 +202,8 @@ public:
 
     QSpotifyPlayQueue *playQueue() const { return m_playQueue; }
 
+    Q_INVOKABLE void handleUri(const QString &uri);
+
 public Q_SLOTS:
     void login(const QString &username, const QString &password = QString());
     void logout(bool keepLoginInfo);
