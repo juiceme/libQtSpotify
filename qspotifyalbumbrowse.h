@@ -43,6 +43,7 @@
 #define QSPOTIFYALBUMBROWSE_H
 
 #include <QtCore/QStringList>
+#include <QtCore/QObject>
 
 class QSpotifyAlbum;
 class QSpotifyTrackList;
