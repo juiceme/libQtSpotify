@@ -341,7 +341,10 @@ void QSpotifySearch::populatePlaylists(sp_search *search)
     if (search) {
         int c = sp_search_num_playlists(search);
         for (int i = 0; i < c; ++i) {
-            auto playlist = new QSpotifyPlaylistSearchEntry(sp_search_playlist_name(search, i), sp_search_playlist(search, i));
+            auto sp_pl = sp_search_playlist(search, i);
+            if (sp_pl == nullptr)
+                continue;
+            auto playlist = new QSpotifyPlaylistSearchEntry(sp_search_playlist_name(search, i), sp_pl);
             playlist->init();
             m_playlistResults->appendRow(playlist);
             if(m_enablePreview && i < m_numPreviewItems) {
